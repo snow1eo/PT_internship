@@ -1,0 +1,10 @@
+{
+    "host": "localhost",
+    "transports": {
+        "ssh": {
+            "password": "pwd",
+            "login": "root",
+            "port": 22022
+        }
+    }
+}
