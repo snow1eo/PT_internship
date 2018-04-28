@@ -66,12 +66,6 @@ def run_tests():
 def add_control(ctrl_id, status):
     db = sqlite3.connect(db_name)
     curr = db.cursor()
-    descr = curr.execute("""SELECT descr FROM control
-        WHERE id={}""".format(ctrl_id)).fetchall()
-    if descr:
-        descr = descr[0][0]
-    else:
-        raise ConfigError("description for {} not found".format(ctrl_id))
     curr.execute('INSERT INTO scandata VALUES (NULL, ?, ?)', (ctrl_id, status))
     db.commit()
     db.close()
