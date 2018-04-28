@@ -31,15 +31,17 @@ def init_database():
     db = sqlite3.connect(db_name)
     curr = db.cursor()
     curr.execute("""CREATE TABLE IF NOT EXISTS
-        control(id INTEGER PRIMARY KEY, descr TEXT)""")
+        control(id INTEGER PRIMARY KEY, descr TEXT, info TEXT)""")
     with open('controls.json') as f:
         controls = json.load(f)
     for control in controls:
-        curr.execute("""INSERT INTO control VALUES
-            ({ctrl_id}, "{descr}")""".format(
-                ctrl_id = control[0], descr = control[1]))
-    curr.execute("""CREATE TABLE IF NOT EXISTS
-        scandata(id INTEGER PRIMARY KEY, descr TEXT, status INTEGER)""")
+        curr.execute('INSERT INTO control VALUES (?, ?, ?)', control)
+    curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
+                    id INTEGER PRIMARY KEY,
+                    ctrl_id INTEGER NOT NULL,
+                    status INTEGER,
+                    FOREIGN KEY (ctrl_id) REFERENCES control(id))
+                    """)
     db.commit()
     db.close()
 
@@ -69,11 +71,8 @@ def add_control(ctrl_id, status):
     if descr:
         descr = descr[0][0]
     else:
-        raise ConfigError("description for {} not found"\
-            .format(ctrl_id))
-    curr.execute("""INSERT INTO scandata VALUES
-        ({id_}, "{descr}", {status})""".format(
-            id_ = ctrl_id, descr = descr, status = status))
+        raise ConfigError("description for {} not found".format(ctrl_id))
+    curr.execute('INSERT INTO scandata VALUES (NULL, ?, ?)', (ctrl_id, status))
     db.commit()
     db.close()
 

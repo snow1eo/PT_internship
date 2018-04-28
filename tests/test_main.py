@@ -47,7 +47,7 @@ def test_init_database():
     assert not curr.execute("""SELECT * FROM scandata""").fetchall()
     with open('controls.json') as f:
         # Converting to form to compare
-        required_controls = set(map(lambda x: (int(x[0]), x[1]), \
+        required_controls = set(map(lambda x: (int(x[0]), x[1], x[2]), \
             map(tuple, json.load(f))))
     controls = set(curr.execute("""SELECT * FROM control""").fetchall())
     assert controls == required_controls
@@ -57,7 +57,7 @@ def test_run_tests():
     pass
 
 def test_add_control():
-    ctrls = [['200', 'some desription']]
+    ctrls = [['200', 'some desription', 'some info']]
     with open('controls.json', 'w') as f:
         json.dump(ctrls, f)
     init_database()
@@ -68,4 +68,4 @@ def test_add_control():
     db = sqlite3.connect(db_name)
     curr = db.cursor()
     rec = curr.execute("""SELECT * FROM scandata""").fetchall()
-    assert rec == [(200, 'some desription', 3)]
+    assert rec[0][1:] == (200, 3)
