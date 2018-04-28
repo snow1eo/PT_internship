@@ -6,6 +6,7 @@ import sqlite3
 import re
 import json
 from modules.reporting import generate_report
+from modules.transports import *
 
 db_name = 'sqlite3.db'
 

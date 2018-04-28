@@ -19,6 +19,8 @@ def setup_module(module):
                                      name   = 'cont_ubuntu_sshd')
     except Exception as e:
         print(e)
+    while client.containers.list()[-1].status != 'running': # костыльно немного,
+        pass                                                # но иначе не выходит
     client.containers.prune()
 
 def teardown_module(module):
