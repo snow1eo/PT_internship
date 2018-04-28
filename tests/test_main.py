@@ -39,7 +39,7 @@ def test_init_database():
     assert db_name in os.listdir()
     db = sqlite3.connect(db_name)
     curr = db.cursor()
-    curr.execute("""SELECT name FROM sqlite_master where type = 'table'""")
+    curr.execute("SELECT name FROM sqlite_master where type = 'table'""")
     tables = curr.fetchall()
     tables = list(map(list, tables)) # Converting a list
     tables = set(sum(tables, []))    # to a linear set
@@ -56,16 +56,18 @@ def test_run_tests():
     # TODO 2
     pass
 
-def test_add_control():
+def test_add_control_pass():
     ctrls = [['200', 'some desription', 'some info']]
     with open('controls.json', 'w') as f:
         json.dump(ctrls, f)
     init_database()
-    with pytest.raises(ConfigError) as e_info:
-        add_control(404, 3)
-    assert str(e_info).endswith('description for 404 not found')
     add_control(200, 3)
     db = sqlite3.connect(db_name)
     curr = db.cursor()
     rec = curr.execute("""SELECT * FROM scandata""").fetchall()
-    assert rec[0][1:] == (200, 3)
+    assert rec[-1][1:] == (200, 3)
+
+def test_add_control_foreign_key_err():
+    with pytest.raises(ConfigError) as e_info:
+        add_control(404, 3)
+    assert e_info

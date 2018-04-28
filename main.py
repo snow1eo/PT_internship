@@ -30,6 +30,7 @@ def init_database():
     delete_database()
     db = sqlite3.connect(db_name)
     curr = db.cursor()
+    curr.execute("PRAGMA foreign_keys = ON")
     curr.execute("""CREATE TABLE IF NOT EXISTS
         control(id INTEGER PRIMARY KEY, descr TEXT, info TEXT)""")
     with open('controls.json') as f:
@@ -66,6 +67,8 @@ def run_tests():
 def add_control(ctrl_id, status):
     db = sqlite3.connect(db_name)
     curr = db.cursor()
+    if not curr.execute('SELECT * FROM control WHERE id=?', (ctrl_id,)).fetchall():
+        raise ConfigError('foreign key error')
     curr.execute('INSERT INTO scandata VALUES (NULL, ?, ?)', (ctrl_id, status))
     db.commit()
     db.close()
