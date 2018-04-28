@@ -6,16 +6,15 @@ import sqlite3
 import json
 if os.getcwd().endswith('tests'):
     os.chdir('..')
-sys.path.append(os.getcwd()+'/')
+sys.path.append(os.getcwd())
 from main import *
 
-#db_name = 'sqlite3.db'
 required_tables = {'control', 'scandata'}
 
 def setup_module(module):
     if '.test_tmp' in os.listdir():
         rmtree('.test_tmp')
-    copytree('./', '.test_tmp/')
+    copytree('.', '.test_tmp')
     os.chdir('.test_tmp')
 
 def teardown_module(module):
@@ -55,10 +54,6 @@ def test_init_database():
 
 def test_run_tests():
     # TODO 2
-    pass
-
-def test_generate_report():
-    # TODO 4
     pass
 
 def test_add_control():

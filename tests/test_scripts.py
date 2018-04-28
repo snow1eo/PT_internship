@@ -10,8 +10,8 @@ from modules.transports import *
 from main import *
 
 def setup_module(module):
-    path = r'./tests/'
-    dockerfile = r'./Dockerfile'
+    path = r'tests'
+    dockerfile = r'./Dockerfile_ubuntu_sshd'
 
     client = docker.from_env()
     images = client.images.build(path = path, dockerfile = dockerfile)
