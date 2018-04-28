@@ -1,7 +1,1 @@
-[
-    [
-        "000",
-        "File named 'testfile' is present in the root folder on target system.",
-        "Some information about this compliance"
-    ]
-]
+[["200", "some desription", "some info"]]

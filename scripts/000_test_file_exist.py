@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from modules.transports import *
+from modules.transports import get_transport, TransportConnectionError, TransportError
 
 def main():
     try:

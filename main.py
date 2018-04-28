@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 
 import importlib
-import os, sys
-import sqlite3
+import os
 import re
 import json
 from modules.reporting import generate_report
-from modules.transports import *
-
-db_name = 'sqlite3.db'
+from modules.database import init_database, delete_database, add_control
 
 class ConfigError(Exception):
     pass
@@ -27,30 +24,6 @@ def check_config():
     if not set(test_nums).issubset(set(cfg_nums)):
         raise ConfigError("config doesn't match scripts")
 
-def init_database():
-    delete_database()
-    db = sqlite3.connect(db_name)
-    curr = db.cursor()
-    curr.execute("PRAGMA foreign_keys = ON")
-    curr.execute("""CREATE TABLE IF NOT EXISTS
-        control(id INTEGER PRIMARY KEY, descr TEXT, info TEXT)""")
-    with open('controls.json') as f:
-        controls = json.load(f)
-    for control in controls:
-        curr.execute('INSERT INTO control VALUES (?, ?, ?)', control)
-    curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
-                    id INTEGER PRIMARY KEY,
-                    ctrl_id INTEGER NOT NULL,
-                    status INTEGER,
-                    FOREIGN KEY (ctrl_id) REFERENCES control(id))
-                    """)
-    db.commit()
-    db.close()
-
-def delete_database():
-    if db_name in os.listdir('./'):
-        os.remove(db_name)
-
 def run_tests():
     tests = [test.strip('.py') for test in os.listdir('scripts')\
                             if re.match(r'\d+_.+\.py', test)]
@@ -64,15 +37,6 @@ def run_tests():
             print('ERROR: {}'.format(e_info))
             status = 5
         add_control(ctrl_id, status)
-
-def add_control(ctrl_id, status):
-    db = sqlite3.connect(db_name)
-    curr = db.cursor()
-    if not curr.execute('SELECT * FROM control WHERE id=?', (ctrl_id,)).fetchall():
-        raise ConfigError('foreign key error')
-    curr.execute('INSERT INTO scandata VALUES (NULL, ?, ?)', (ctrl_id, status))
-    db.commit()
-    db.close()
 
 if __name__ == '__main__':
     check_config()
