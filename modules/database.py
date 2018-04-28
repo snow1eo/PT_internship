@@ -1,11 +1,30 @@
 import json
 import sqlite3
 import os
+import re
 
+cfg_name = 'controls.json'
 db_name = 'sqlite3.db'
 
 class DatabaseError(Exception):
     pass
+
+class ConfigError(Exception):
+    pass
+
+def check_config():
+    if cfg_name not in os.listdir('./'):
+        raise ConfigError("controls.json doesn't exist")
+    test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')\
+                            if re.match(r'\d+_.+\.py', test)]
+    if len(test_nums) != len(set(test_nums)):
+        raise ConfigError('duplicate test numbers')
+    with open(cfg_name) as f:
+        cfg_nums = [int(ctrl[0]) for ctrl in json.load(f)]
+    if len(cfg_nums) != len(set(cfg_nums)):
+        raise ConfigError('duplicate items')
+    if not set(test_nums).issubset(set(cfg_nums)):
+        raise ConfigError("config doesn't match scripts")
 
 def init_database():
     delete_database()
@@ -14,7 +33,7 @@ def init_database():
     curr.execute("PRAGMA foreign_keys = ON")
     curr.execute("""CREATE TABLE IF NOT EXISTS
         control(id INTEGER PRIMARY KEY, descr TEXT, info TEXT)""")
-    with open('controls.json') as f:
+    with open(cfg_name) as f:
         controls = json.load(f)
     for control in controls:
         curr.execute('INSERT INTO control VALUES (?, ?, ?)', control)
