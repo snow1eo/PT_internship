@@ -1,3 +1,5 @@
 [
-    ["000", "file named 'testfile' exist on system", "some info"]
+    ["000",
+     "File named 'testfile' is present in the root folder on target system.",
+     "Some detailed information about this test"]
 ]

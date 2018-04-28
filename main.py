@@ -5,7 +5,7 @@ import os
 import re
 import json
 from modules.reporting import generate_report
-from modules.database import *
+from modules.database import check_config, init_database, delete_database, add_control
 
 def run_tests():
     tests = [test.strip('.py') for test in os.listdir('scripts')\

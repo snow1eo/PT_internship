@@ -1,6 +1,7 @@
 import pytest
 import docker
-import sys, os
+import sys
+import os
 import importlib
 import sqlite3
 

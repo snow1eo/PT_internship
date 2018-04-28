@@ -1,5 +1,6 @@
 import pytest
-import sys, os
+import sys
+import os
 from shutil import rmtree, copytree
 import json
 if os.getcwd().endswith('tests'):

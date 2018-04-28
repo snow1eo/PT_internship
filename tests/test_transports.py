@@ -1,6 +1,7 @@
 import pytest
 import docker
-import sys, os
+import sys
+import os
 if os.getcwd().endswith('tests'):
     os.chdir('..')
 from modules.transports import *
@@ -39,7 +40,7 @@ def test_get_transport_from_config_pass():
     assert isinstance(ssh, SSH_transport)
 
 def test_get_transport_except():
-    with pytest.raises(TransportError) as e_info:
+    with pytest.raises(TransportCreationError) as e_info:
         get_transport('noway')
     assert str(e_info).endswith('UnknownTransport')
 
@@ -50,7 +51,7 @@ class Test_SSH_transport:
 
     def test_connect_wrong_auth(self):
         with get_transport('ssh', password = 'wrong') as ssh,\
-            pytest.raises(TransportConnectionError) as e_info:
+            pytest.raises(AuthenticationError) as e_info:
             ssh.connect()
         assert str(e_info).endswith('Authentication failed')
 

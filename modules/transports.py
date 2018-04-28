@@ -7,6 +7,12 @@ class TransportError(Exception):
 class TransportConnectionError(TransportError):
     pass
 
+class AuthenticationError(TransportConnectionError):
+    pass
+
+class TransportCreationError(TransportError):
+    pass
+
 _config = None
 
 class SSH_transport:
@@ -34,7 +40,7 @@ class SSH_transport:
                                username = self.login,
                                password = self.password)
         except paramiko.ssh_exception.AuthenticationException:
-            raise TransportConnectionError('Authentication failed')
+            raise AuthenticationError('Authentication failed')
         except Exception:
             raise TransportConnectionError("Couldn't connect to host")
 
@@ -65,7 +71,7 @@ def get_transport(transport_name,
                   login    = None,
                   password = None):
     if transport_name not in _available_transports:
-        raise TransportError('UnknownTransport')
+        raise TransportCreationError('UnknownTransport')
 
     if host is None or port is None or\
        login is None or password is None:
@@ -82,7 +88,7 @@ def get_transport(transport_name,
     if transport_name == 'ssh':
         return SSH_transport(host, port, login, password)
     else:
-        raise TransportError('UnknownTransport')
+        raise TransportCreationError('UnknownTransport')
 
 def _get_config():
     global _config
