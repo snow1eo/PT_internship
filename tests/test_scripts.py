@@ -1,14 +1,14 @@
 import pytest
-import docker
 import sys
 import os
-import importlib
-import sqlite3
-
 if os.getcwd().endswith('tests'):
     os.chdir('..')
-from modules.transports import *
-from main import *
+sys.path.append(os.getcwd())
+
+import docker
+import importlib
+from time import sleep
+from modules.transports import get_transport
 
 def setup_module(module):
     path = r'tests'
@@ -25,6 +25,7 @@ def setup_module(module):
         print(e)
     while client.containers.list()[-1].status != 'running': # костыльно немного,
         pass                                                # но иначе не выходит
+    sleep(5)
     client.containers.prune()
 
 def teardown_module(module):

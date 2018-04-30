@@ -1,10 +1,15 @@
 import pytest
-import docker
 import sys
 import os
 if os.getcwd().endswith('tests'):
     os.chdir('..')
-from modules.transports import *
+sys.path.append(os.getcwd())
+
+import docker
+from time import sleep
+from modules.transports import get_transport, SSH_transport,\
+     TransportCreationError, AuthenticationError, TransportConnectionError,\
+     TransportError
 
 def setup_module(module):
 
@@ -22,6 +27,7 @@ def setup_module(module):
         print(e)
     while client.containers.list()[-1].status != 'running': # костыльно немного,
         pass                                                # но иначе не выходит
+    sleep(5)
     client.containers.prune()
 
 def teardown_module(module):

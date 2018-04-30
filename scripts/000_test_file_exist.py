@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 
 from modules.transports import get_transport, TransportConnectionError, TransportError
-from modules.statuses import STATUS_COMPLIANT, STATUS_NOT_COMPLIANT,\
-                             STATUS_NOT_APPLICABLE, STATUS_ERROR
+import json
+
+with open('statuses.json') as f:
+    statuses = json.load(f)
+
 def main():
     try:
         ssh = get_transport('ssh')
         ssh.connect()
     except TransportConnectionError as e_info:
         if str(e_info).endswith("Couldn't connect to host"):
-            return STATUS_NOT_APPLICABLE
+            return statuses['NOT_APPLICABLE']['code']
         else:
-            return STATUS_ERROR
+            return statuses['ERROR']['code']
     try:
         data = ssh.get_file('/testfile')
     except TransportError as err:
         if str(err).endswith('File not found'):
-            return STATUS_NOT_COMPLIANT
+            return statuses['NOT_COMPLIANT']['code']
         else:
-            return STATUS_ERROR
-    return STATUS_COMPLIANT
+            return statuses['ERROR']['code']
+    return statuses['COMPLIANT']['code']

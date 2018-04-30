@@ -1,6 +1,6 @@
-from jinja2 import Environment, PackageLoader, FileSystemLoader, select_autoescape
+#from jinja2 import Environment, PackageLoader, FileSystemLoader, select_autoescape
 from collections import namedtuple
-import sqlite3
+#import sqlite3
 from modules.database import DB_NAME
 
 def generate_report():

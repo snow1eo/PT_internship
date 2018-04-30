@@ -6,7 +6,9 @@ import re
 import json
 from modules.reporting import generate_report
 from modules.database import check_config, init_database, delete_database, add_control
-from modules.statuses import STATUS_EXCEPTION
+
+with open('statuses.json') as f:
+    statuses = json.load(f)
 
 def run_tests():
     tests = [test.strip('.py') for test in os.listdir('scripts')\
@@ -19,7 +21,7 @@ def run_tests():
             status = test_mod.main()
         except Exception as e_info:
             print('ERROR: {}'.format(e_info))
-            status = STATUS_EXCEPTION
+            status = statuses['EXCEPTION']['code']
         add_control(ctrl_id, status)
 
 if __name__ == '__main__':
