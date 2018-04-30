@@ -8,7 +8,7 @@ import pytest
 if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
-from modules.transports import get_transport, SshTransport, \
+from modules.transports import get_transport, SSHTransport, \
     TransportCreationError, AuthenticationError, TransportConnectionError, \
     TransportError
 
@@ -43,13 +43,13 @@ def teardown_module():
 
 
 def test_get_transport_from_params_pass():
-    ssh = get_transport('ssh', 'localhost', 22022, 'root', 'pwd')
-    assert isinstance(ssh, SshTransport)
+    ssh = get_transport('SSH', 'localhost', 22022, 'root', 'pwd')
+    assert isinstance(ssh, SSHTransport)
 
 
 def test_get_transport_from_config_pass():
-    ssh = get_transport('ssh')
-    assert isinstance(ssh, SshTransport)
+    ssh = get_transport('SSH')
+    assert isinstance(ssh, SSHTransport)
 
 
 def test_get_transport_except():
@@ -58,40 +58,40 @@ def test_get_transport_except():
     assert str(e_info).endswith('UnknownTransport')
 
 
-class TestSshTransport:
+class TestSSHTransport:
     def test_connect_pass(self):
-        with get_transport('ssh') as ssh:
+        with get_transport('SSH') as ssh:
             ssh.connect()
 
     def test_connect_wrong_auth(self):
-        with get_transport('ssh', password='wrong') as ssh,\
+        with get_transport('SSH', password='wrong') as ssh,\
                         pytest.raises(AuthenticationError) as e_info:
             ssh.connect()
         assert str(e_info).endswith('Authentication failed')
 
     def test_connect_wrong_host(self):
-        with get_transport('ssh', port=666) as ssh,\
+        with get_transport('SSH', port=666) as ssh,\
                         pytest.raises(TransportConnectionError) as e_info:
             ssh.connect()
         assert str(e_info).endswith("Couldn't connect to host")
 
     def test_execute_pass(self):
-        with get_transport('ssh') as ssh:
+        with get_transport('SSH') as ssh:
             ssh.connect()
             assert isinstance(ssh.execute('ls /'), tuple)
 
     def test_execute_except(self):
-        with get_transport('ssh', login='testuser', password='pass') as ssh,\
+        with get_transport('SSH', login='testuser', password='pass') as ssh,\
                         pytest.raises(TransportError) as e_info:
             ssh.connect()
             ssh.execute('wrong_command')
 
     def test_get_file_pass(self):
-        with get_transport('ssh') as ssh:
+        with get_transport('SSH') as ssh:
             ssh.connect()
             assert isinstance(ssh.get_file('/etc/passwd'), bytes)
 
     def test_get_file_except(self):
-        with get_transport('ssh') as ssh, pytest.raises(TransportError):
+        with get_transport('SSH') as ssh, pytest.raises(TransportError):
             ssh.connect()
             ssh.get_file('/wrong_file')

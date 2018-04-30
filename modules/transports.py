@@ -24,7 +24,7 @@ ENV_FILE = path.join('config', 'env.json')
 _config = None
 
 
-class SshTransport:
+class SSHTransport:
 
     def __init__(self, host, port, login, password):
         self.host = host
@@ -74,7 +74,7 @@ class SshTransport:
         return data
 
 
-_available_transports = {'ssh'}
+_available_transports = {'SSH'}
 
 
 def get_transport(transport_name,
@@ -87,7 +87,7 @@ def get_transport(transport_name,
 
     if host is None or port is None or\
        login is None or password is None:
-        conf = _get_config()
+        conf = get_config()
         if host is None:
             host = conf['host']
         if port is None:
@@ -97,13 +97,13 @@ def get_transport(transport_name,
         if password is None:
             password = conf['transports'][transport_name]['password']
 
-    if transport_name == 'ssh':
-        return SshTransport(host, port, login, password)
+    if transport_name == 'SSH':
+        return SSHTransport(host, port, login, password)
     else:
         raise TransportCreationError('UnknownTransport')
 
 
-def _get_config():
+def get_config():
     global _config
     if not _config:
         with open(ENV_FILE) as f:

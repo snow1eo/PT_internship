@@ -35,7 +35,7 @@ def teardown_module():
 
 @pytest.mark.first
 def test_check_config():
-    # TODO (somewhere. Probably)
+    # TODO (some time or other. Probably)
     check_config()
 
 
@@ -48,19 +48,19 @@ def test_init_database():
         curr.execute("""SELECT name FROM sqlite_master where type = 'table'""")
         tables = curr.fetchall()
         tables = list(map(list, tables))  # Converting a list
-        tables = set(sum(tables, []))  # to a linear set
+        tables = set(sum(tables, []))     # to a linear set
         assert tables == REQUIRED_TABLES
         assert not curr.execute("""SELECT * FROM scandata""").fetchall()
         with open(CFG_NAME) as f:
             # Converting to form to compare
-            required_controls = set(map(lambda x: (int(x[0]), x[1], x[2]),
+            required_controls = set(map(lambda x: (int(x[0]), *x[1:]),
                                         map(tuple, json.load(f))))
         controls = set(curr.execute("""SELECT * FROM control""").fetchall())
         assert controls == required_controls
 
 
 def test_add_control_pass():
-    controls = [[str(TEST_NUM_PASS), 'some description', 'some info']]
+    controls = [[str(TEST_NUM_PASS), 'title', 'description', 'requirement']]
     with open(CFG_NAME, 'w') as f:
         json.dump(controls, f)
     init_database()

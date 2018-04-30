@@ -18,37 +18,48 @@
     <h1 class="main-title">
         System summary
     </h1>
+    <div>
+        <p> System address: {{ host }} </p>
+        <br> Transports: </br>
+        {% for transport in transports %}
+        <p> {{ transport.name }}: </p>
+        <p> Port: {{ transport.port }} </p>
+        <p> Login: {{ transport.login }} </p>
+        {% endfor %}
+    </div>
+</article>
+
+<article>
     <h1 class="main-title">
         Compliance summary
     </h1>
+    <div>
+        <p> Start: {{ start_time }} </p>
+        <p> Finish: {{ finish_time }}
+        <p> Duration: {{ duration }} </p>
+        <p> Total controls: {{ total_controls }} </p>
+        {% for status in statuses %}
+        <p> {{ status.name }}: {{ status.count }} </p>
+        {% endfor %}
+    </div>
 </article>
 
-
+{% for compliance in compliances %}
 <article class="A4">
-    <h1>
-        Address analyzed Host: {{ cfg.host }}
-    </h1>
-    {% for control in controls %}
     <article>
-        <h3>Файл bla-bla должен сущетвовать в корневой директории системы</h3>
-        <h4>id:3452213</h4>
+        <h3>{{ compliance.title }}</h3>
+        <h4>id: {{ compliance.id }}</h4>
 
-        <p> требование: Файл существует </p>
-        <p> система: Файл отсутвует </p>
-        <p> status: <span class="not-compliant">Не совместимо </span></p>
+        <p> Requirement: {{ compliance.requirement }} </p>
+        <p> System: TODO </p>
+        <p> Status: {{ compliance.status }}</p>
         <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante
-            dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris.
-            Fusce
-            nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti
-            sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero.
-            Sed
-            dignissim lacinia nunc.
+            {{ compliance.description }}
         </p>
     </article>
-    {% endfor %}
 
 </article>
+{% endfor %}
 
 </body>
 </html>

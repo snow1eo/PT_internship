@@ -43,7 +43,7 @@ def teardown_module():
 
 
 def test_000_file_exist_1():
-    ssh = get_transport('ssh')
+    ssh = get_transport('SSH')
     ssh.connect()
     ssh.execute('touch /testfile')
     mod = importlib.import_module('.000_test_file_exist', package='scripts')
@@ -51,7 +51,7 @@ def test_000_file_exist_1():
 
 
 def test_000_file_exist_2():
-    ssh = get_transport('ssh')
+    ssh = get_transport('SSH')
     ssh.connect()
     try:
         ssh.execute('rm -f /testfile')

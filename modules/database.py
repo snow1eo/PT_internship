@@ -44,12 +44,15 @@ def init_database():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
-        curr.execute("""CREATE TABLE IF NOT EXISTS
-                control(id INTEGER PRIMARY KEY, descr TEXT, info TEXT)""")
+        curr.execute("""CREATE TABLE IF NOT EXISTS control(
+                        id INTEGER PRIMARY KEY,
+                        title TEXT,
+                        description TEXT,
+                        requirement TEXT)""")
         with open(CFG_NAME) as f:
             controls = json.load(f)
         for control in controls:
-            curr.execute('INSERT INTO control VALUES (?, ?, ?)', control)
+            curr.execute('INSERT INTO control VALUES (?, ?, ?, ?)', control)
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
                     id INTEGER PRIMARY KEY,
                     ctrl_id INTEGER NOT NULL,

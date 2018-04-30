@@ -7,7 +7,7 @@ from modules.transports import get_transport, TransportConnectionError, Transpor
 def main():
     statuses = get_statuses()
     try:
-        ssh = get_transport('ssh')
+        ssh = get_transport('SSH')
         ssh.connect()
     except TransportConnectionError as e_info:
         if str(e_info).endswith("Couldn't connect to host"):

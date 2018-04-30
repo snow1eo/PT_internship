@@ -1,5 +1,6 @@
 [
     ["000",
-     "File named 'testfile' is present in the root folder on target system.",
-     "Some detailed information about this test"]
+     "Testscript",
+     "Some detailed information about this test",
+     "File named 'testfile' exist in the root folder on system."]
 ]
