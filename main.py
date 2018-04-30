@@ -6,11 +6,8 @@ import json
 import os
 import re
 
-from modules.database import check_config, init_database, delete_database, add_control
+import modules.database as db
 from modules.reporting import generate_report
-
-with open('statuses.json') as f:
-    statuses = json.load(f)
 
 
 def run_tests():
@@ -18,7 +15,7 @@ def run_tests():
              if re.match(r'\d+_.+\.py', test)]
     # Тут только такой вариант заставил работать, и он мне вообще не нравится ><
     # tests = map(lambda x:str(x).strip('.py').lstrip('scripts'), pathlib.Path('scripts').glob(r'[0-9][0-9][0-9]_*.py'))
-
+    statuses = db.get_statuses()
     for test in tests:
         ctrl_id = re.findall(r'\d+', test)[0]
         try:
@@ -27,12 +24,12 @@ def run_tests():
         except Exception as e_info:
             print('ERROR: {}'.format(e_info))
             status = statuses['EXCEPTION']['code']
-        add_control(ctrl_id, status)
+        db.add_control(ctrl_id, status)
 
 
 if __name__ == '__main__':
-    check_config()
-    init_database()
+    db.check_config()
+    db.init_database()
     run_tests()
     generate_report()
-    delete_database()
+    db.delete_database()

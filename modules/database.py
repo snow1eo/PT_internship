@@ -3,8 +3,9 @@ import os
 import re
 import sqlite3
 
-CFG_NAME = 'controls.json'
 DB_NAME = 'sqlite3.db'
+CFG_NAME = os.path.join('config', 'controls.json')
+STAT_FILE = os.path.join('config', 'statuses.json')
 
 
 class DatabaseError(Exception):
@@ -24,8 +25,8 @@ class DuplicateTestNumError(ConfigError):
 
 
 def check_config():
-    if CFG_NAME not in os.listdir('./'):
-        raise ConfigError("controls.json doesn't exist")
+    if not os.path.exists(CFG_NAME):
+        raise ConfigError("{} doesn't exist".format(CFG_NAME))
     test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')
                  if re.match(r'\d+_.+\.py', test)]
     if len(test_nums) != len(set(test_nums)):
@@ -35,7 +36,7 @@ def check_config():
     if len(cfg_nums) != len(set(cfg_nums)):
         raise DuplicateTestNumError("duplicate tests numbers in '{}'".format(CFG_NAME))
     if not set(test_nums).issubset(set(cfg_nums)):
-        raise ConfigError("config doesn't match scripts")
+        raise ConfigError("{} doesn't match scripts".format(CFG_NAME))
 
 
 def init_database():
@@ -67,3 +68,14 @@ def add_control(ctrl_id, status):
         curr.execute("PRAGMA foreign_keys = ON")
         curr.execute("""INSERT INTO scandata(id, ctrl_id, status)
                     VALUES (NULL, ?, ?)""", (ctrl_id, status))
+
+
+_statuses = None
+
+
+def get_statuses():
+    global _statuses
+    if _statuses is None:
+        with open(STAT_FILE) as f:
+            _statuses = json.load(f)
+    return _statuses

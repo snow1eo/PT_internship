@@ -1,4 +1,5 @@
 import json
+from os import path
 
 import paramiko
 
@@ -19,6 +20,7 @@ class TransportCreationError(TransportError):
     pass
 
 
+ENV_FILE = path.join('config', 'env.json')
 _config = None
 
 
@@ -104,6 +106,6 @@ def get_transport(transport_name,
 def _get_config():
     global _config
     if not _config:
-        with open('config.json') as f:
+        with open(ENV_FILE) as f:
             _config = json.load(f)
     return _config

@@ -3,12 +3,11 @@
 import json
 
 from modules.transports import get_transport, TransportConnectionError, TransportError
-
-with open('statuses.json') as f:
-    statuses = json.load(f)
+from modules.database import get_statuses
 
 
 def main():
+    statuses = get_statuses()
     try:
         ssh = get_transport('ssh')
         ssh.connect()
