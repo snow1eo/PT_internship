@@ -56,6 +56,5 @@ def delete_database():
 def add_control(ctrl_id, status):
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        if not curr.execute('SELECT * FROM control WHERE id=?', (ctrl_id,)).fetchall():
-            raise ForeignKeyError("{} doesn't exist".format(ctrl_id))
-        curr.execute('INSERT INTO scandata VALUES (NULL, ?, ?)', (ctrl_id, status))
+        curr.execute("PRAGMA foreign_keys = ON")
+        curr.execute('INSERT INTO scandata(id, ctrl_id, status) VALUES (NULL, ?, ?)', (ctrl_id, status))
