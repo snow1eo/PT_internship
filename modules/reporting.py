@@ -3,6 +3,7 @@ from collections import namedtuple
 #import sqlite3
 from modules.database import DB_NAME
 
+
 def generate_report():
     Comliances = namedtuple('Compliances', 'ID, desc, info, status')
     print(DB_NAME)

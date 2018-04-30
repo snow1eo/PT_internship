@@ -1,27 +1,35 @@
-import paramiko
 import json
+
+import paramiko
+
 
 class TransportError(Exception):
     pass
 
+
 class TransportConnectionError(TransportError):
     pass
+
 
 class AuthenticationError(TransportConnectionError):
     pass
 
+
 class TransportCreationError(TransportError):
     pass
 
+
 _config = None
 
-class SSH_transport:
+
+class SshTransport:
+
     def __init__(self, host, port, login, password):
-        self.host     = host
-        self.port     = port
-        self.login    = login
+        self.host = host
+        self.port = port
+        self.login = login
         self.password = password
-        self._conn    = paramiko.SSHClient()
+        self._conn = paramiko.SSHClient()
         self._conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     def __del__(self):
@@ -35,10 +43,10 @@ class SSH_transport:
 
     def connect(self):
         try:
-            self._conn.connect(hostname = self.host,
-                               port     = self.port,
-                               username = self.login,
-                               password = self.password)
+            self._conn.connect(hostname=self.host,
+                               port=self.port,
+                               username=self.login,
+                               password=self.password)
         except paramiko.ssh_exception.AuthenticationException:
             raise AuthenticationError('Authentication failed')
         except Exception:
@@ -52,7 +60,7 @@ class SSH_transport:
         err = stderr.read()
         if err:
             raise TransportError(err)
-        return (stdin, stdout, stderr)
+        return stdin, stdout, stderr
 
     def get_file(self, path):
         sftp = self._conn.open_sftp()
@@ -63,13 +71,15 @@ class SSH_transport:
             raise TransportError('File not found')
         return data
 
+
 _available_transports = {'ssh'}
 
+
 def get_transport(transport_name,
-                  host     = None,
-                  port     = None,
-                  login    = None,
-                  password = None):
+                  host=None,
+                  port=None,
+                  login=None,
+                  password=None):
     if transport_name not in _available_transports:
         raise TransportCreationError('UnknownTransport')
 
@@ -86,9 +96,10 @@ def get_transport(transport_name,
             password = conf['transports'][transport_name]['password']
 
     if transport_name == 'ssh':
-        return SSH_transport(host, port, login, password)
+        return SshTransport(host, port, login, password)
     else:
         raise TransportCreationError('UnknownTransport')
+
 
 def _get_config():
     global _config
