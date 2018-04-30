@@ -1,12 +1,13 @@
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from collections import namedtuple
-import time
 import os
-import sys
 import sqlite3
+import sys
+from collections import namedtuple
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from weasyprint import HTML
+
 from modules.database import DB_NAME, get_statuses
 from modules.transports import get_config
-sys.path.append(os.getcwd())
 from modules.time import get_start_time, get_finish_time, get_duration
 
 
@@ -27,8 +28,8 @@ def render(tpl_path, context):
 def get_context():
     context = dict()
     Transport = namedtuple('Transport', 'name, password, login, port')
-    transports = [Transport(name, p['password'], p['login'], p['port'])
-                            for name, p in ENV['transports'].items()]
+    transports = [Transport(name, param['password'], param['login'], param['port'])
+                            for name, param in ENV['transports'].items()]
     context.update({'host': ENV['host']})
     context.update({'transports': transports})
 
@@ -53,5 +54,5 @@ def get_context():
 
 def generate_report():
     rendered = render(TEMPLATE_HTML, get_context())
-
-    print(rendered)
+    document = HTML(string=rendered).render()
+    document.write_pdf('sample_report.pdf')

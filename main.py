@@ -2,14 +2,12 @@
 
 import importlib
 # import pathlib
-import json
 import os
 import re
 
 import modules.database as db
 from modules.reporting import generate_report
 from modules.time import set_start_time, set_finish_time
-
 
 STATUSES = db.get_statuses()
 
