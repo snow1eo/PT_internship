@@ -13,8 +13,8 @@ from modules.transports import get_transport, SshTransport, \
     TransportError
 
 
-PATH = r'tests'
-DOCKER_FILE = r'./Dockerfile_ubuntu_sshd'
+PATH = 'tests'
+DOCKER_FILE = 'Dockerfile_ubuntu_sshd'
 PORT = 22022
 
 

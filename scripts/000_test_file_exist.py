@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import json
-
-from modules.transports import get_transport, TransportConnectionError, TransportError
 from modules.database import get_statuses
+from modules.transports import get_transport, TransportConnectionError, TransportError
 
 
 def main():
