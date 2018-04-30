@@ -11,16 +11,18 @@ sys.path.append(os.getcwd())
 from modules.transports import get_transport
 
 
-def setup_module():
-    path = r'tests'
-    dockerfile = r'./Dockerfile_ubuntu_sshd'
+PATH = r'tests'
+DOCKER_FILE = r'./Dockerfile_ubuntu_sshd'
+PORT = 22022
 
+
+def setup_module():
     client = docker.from_env()
-    images = client.images.build(path=path, dockerfile=dockerfile)
+    images = client.images.build(path=PATH, dockerfile=DOCKER_FILE)
     try:
         cont = client.containers.run(image=images[0],
                                      detach=True,
-                                     ports={'22/tcp' : 22022},
+                                     ports={'22/tcp': PORT},
                                      name='cont_ubuntu_sshd')
     except Exception as e:
         print(e)
