@@ -40,19 +40,16 @@ def get_context():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         Control = namedtuple('Control',
-                            'ID, title, description, requirement, system, status')
+                            'ID, title, description,\
+                            requirement, system, status')
         # Это кошмар, я понимаю, но понятия не имею, как сделать качественнее
-        # Вложенные запросы?
         # Или имеет смысл заполнять последовательно, а не за 1 проход в 1 строку?
-        controls = [Control(
-                    ID,
-                    *curr.execute('select * from control where id={}'
-                        .format(control_id)).fetchone()[1:4],
-                    curr.execute('select * from control where id={}'
-                        .format(control_id)).fetchone()[code+2],
-                    get_status_name(code))
-                    for ID, control_id, code in
-                        curr.execute('select * from scandata').fetchall()]
+        raw_controls = curr.execute("""SELECT * FROM scandata INNER JOIN
+                control ON scandata.ctrl_id = control.id""").fetchall()
+        raw_controls = [(c[1],)+c[4:7]+(c[5+c[2]], get_status_name(c[2])) for c in raw_controls]
+        controls = [Control(ID, title, description, requirement, system, status) for
+                ID, title, description, requirement, system, status in raw_controls]
+
     context.update({'total_controls': len(controls)})
     context.update({'controls': controls})
     context.update({'statuses': {get_status_name(code): 0 for code in range(1,6)}})

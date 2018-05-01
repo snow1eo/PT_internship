@@ -32,4 +32,4 @@ if __name__ == '__main__':
     run_tests()
     set_finish_time()
     generate_report('sample_report.pdf')
-    delete_database()
+    #delete_database()
