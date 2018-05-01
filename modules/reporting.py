@@ -4,7 +4,7 @@ import sys
 from collections import namedtuple, Counter
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from weasyprint import HTML
+import pdfkit
 
 from modules.database import DB_NAME
 from modules.transports import get_config
@@ -13,7 +13,7 @@ from modules.statuses import get_status_name
 
 
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
-TEMPLATE_CSS = os.path.join('templates', 'style.css')
+CSS_FILE = os.path.join('templates', 'style.css')
 ENV = get_config()
 
 
@@ -40,7 +40,7 @@ def get_context():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         Control = namedtuple('Control',
-                                'ID, title, description, requirement, system, status')
+                            'ID, title, description, requirement, system, status')
         # Это кошмар, я понимаю, но понятия не имею, как сделать качественнее
         # Вложенные запросы?
         # Или имеет смысл заполнять последовательно, а не за 1 проход в 1 строку?
@@ -58,11 +58,9 @@ def get_context():
     context.update({'statuses': {get_status_name(code): 0 for code in range(1,6)}})
     context['statuses'].update(dict(Counter([control.status
                 for control in controls])))
-
     return context
 
 
 def generate_report(report_name):
     rendered = render(TEMPLATE_HTML, get_context())
-    document = HTML(string=rendered).render()
-    document.write_pdf(report_name)
+    pdfkit.from_string(rendered, report_name, css=CSS_FILE)

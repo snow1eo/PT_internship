@@ -29,7 +29,7 @@
     </div>
 </article>
 
-<article>
+<article class="A4">
     <h1 class="main-title">
         Compliance summary
     </h1>
@@ -48,18 +48,12 @@
 
 {% for control in controls %}
 <article class="A4">
-    <article>
-        <h3>{{ control.title }}</h3>
-        <h4>id: {{ control.ID }}</h4>
-
-        <p> Requirement: {{ control.requirement }} </p>
-        <p> System: {{ control.system }} </p>
-        <p> Status: {{ control.status }}</p>
-        <p>
-            {{ control.description }}
-        </p>
-    </article>
-
+    <h3>{{ control.title }}</h3>
+    <h4>id: {{ control.ID }}</h4>
+    <p> Requirement: {{ control.requirement }} </p>
+    <p> System: {{ control.system }} </p>
+    <p> Status: {{ control.status }}</p>
+    <br> {{ control.description }} </br>
 </article>
 {% endfor %}
 
