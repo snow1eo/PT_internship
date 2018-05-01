@@ -53,7 +53,7 @@ def test_init_database():
         assert not curr.execute("""SELECT * FROM scandata""").fetchall()
         with open(CFG_NAME) as f:
             # Converting to form to compare
-            required_controls = set(map(lambda x: (int(x[0]), *x[1:]),
+            required_controls = set(map(lambda x: (int(x[0]), *x[1:-1]),
                                         map(tuple, json.load(f))))
         controls = set(curr.execute("""SELECT * FROM control""").fetchall())
         assert controls == required_controls

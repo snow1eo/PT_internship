@@ -8,8 +8,7 @@ import re
 import modules.database as db
 from modules.reporting import generate_report
 from modules.time import set_start_time, set_finish_time
-
-STATUSES = db.get_statuses()
+from modules.statuses import Statuses
 
 
 def run_tests():
@@ -24,7 +23,7 @@ def run_tests():
             status = test_mod.main()
         except Exception as e_info:
             print('ERROR: {}'.format(e_info))
-            status = STATUSES['EXCEPTION']['code']
+            status = Statuses.EXCEPTION.value
         db.add_control(ctrl_id, status)
 
 

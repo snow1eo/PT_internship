@@ -9,13 +9,12 @@ if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
 from modules.transports import get_transport
-from modules.database import get_statuses
+from modules.statuses import Statuses
 
 
 PATH = r'tests'
 DOCKER_FILE = r'./Dockerfile_ubuntu_sshd'
 PORT = 22022
-STATUSES = get_statuses()
 
 
 def setup_module():
@@ -28,8 +27,6 @@ def setup_module():
                                      name='cont_ubuntu_sshd')
     except Exception as e:
         print(e)
-    while client.containers.list()[-1].status != 'running':  # костыльно немного,
-        pass                                                 # но иначе не выходит
     sleep(5)
     client.containers.prune()
 
@@ -47,7 +44,7 @@ def test_000_file_exist_1():
     ssh.connect()
     ssh.execute('touch /testfile')
     mod = importlib.import_module('.000_test_file_exist', package='scripts')
-    assert mod.main() == STATUSES['COMPLIANT']['code']
+    assert mod.main() == Statuses.COMPLIANT.value
 
 
 def test_000_file_exist_2():
@@ -58,7 +55,7 @@ def test_000_file_exist_2():
     except Exception as e_info:
         pass
     mod = importlib.import_module('.000_test_file_exist', package='scripts')
-    assert mod.main() == STATUSES['NOT_COMPLIANT']['code']
+    assert mod.main() == Statuses.NOT_COMPLIANT.value
 
 
 def test_000_file_exist_3():
@@ -69,7 +66,7 @@ def test_000_file_exist_3():
             mod = importlib.import_module('.000_test_file_exist', package='scripts')
             status = mod.main()
             container.start()
-    assert status == STATUSES['NOT_APPLICABLE']['code']
+    assert status == Statuses.NOT_APPLICABLE.value
 
 
 def test_000_file_exist_4():

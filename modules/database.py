@@ -47,12 +47,11 @@ def init_database():
         curr.execute("""CREATE TABLE IF NOT EXISTS control(
                         id INTEGER PRIMARY KEY,
                         title TEXT,
-                        description TEXT,
-                        requirement TEXT)""")
+                        description TEXT)""")
         with open(CFG_NAME) as f:
             controls = json.load(f)
         for control in controls:
-            curr.execute('INSERT INTO control VALUES (?, ?, ?, ?)', control)
+            curr.execute('INSERT INTO control VALUES (?, ?, ?)', control[:-1])
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
                     id INTEGER PRIMARY KEY,
                     ctrl_id INTEGER NOT NULL,
@@ -71,14 +70,3 @@ def add_control(ctrl_id, status):
         curr.execute("PRAGMA foreign_keys = ON")
         curr.execute("""INSERT INTO scandata(id, ctrl_id, status)
                     VALUES (NULL, ?, ?)""", (ctrl_id, status))
-
-
-_statuses = None
-
-
-def get_statuses():
-    global _statuses
-    if _statuses is None:
-        with open(STAT_FILE) as f:
-            _statuses = json.load(f)
-    return _statuses

@@ -6,7 +6,7 @@ from collections import namedtuple
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML
 
-from modules.database import DB_NAME, get_statuses
+from modules.database import DB_NAME
 from modules.transports import get_config
 from modules.time import get_start_time, get_finish_time, get_duration
 
@@ -14,7 +14,6 @@ from modules.time import get_start_time, get_finish_time, get_duration
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
 TEMPLATE_CSS = os.path.join('templates', 'style.css')
 ENV = get_config()
-STATUSES = get_statuses()
 
 
 def render(tpl_path, context):
@@ -41,7 +40,7 @@ def get_context():
         curr = db.cursor()
         total_controls = len(curr.execute('select * from control').fetchall())
         Compliance = namedtuple('Compliance',
-                                'ID, title, description, requirement, status')
+                                'ID, title, description, status')
         # Это кошмар, я понимаю, но понятия не имею, как сделать качественнее
         # Вложенные запросы?
         compliances = [Compliance(ID, *curr.execute('select * from control where id={}'

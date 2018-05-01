@@ -1,7 +1,0 @@
-{
-    "COMPLIANT"     : {"code": 1, "msg": "Compliance is performed"},
-    "NOT_COMPLIANT" : {"code": 2, "msg": "Compliance is not performed"},
-    "NOT_APPLICABLE": {"code": 3, "msg": "Not applicable - no transport"},
-    "ERROR"         : {"code": 4, "msg": "Script error"},
-    "EXCEPTION"     : {"code": 5, "msg": "Error"}
-}
