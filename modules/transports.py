@@ -1,7 +1,8 @@
 import json
-from os import path
+import os.path
 
 import paramiko
+import pymysql.cursors
 
 
 class TransportError(Exception):
@@ -20,8 +21,48 @@ class TransportCreationError(TransportError):
     pass
 
 
-ENV_FILE = path.join('config', 'env.json')
+ENV_FILE = os.path.join('config', 'env.json')
 _config = None
+
+
+class MySQLTransport:
+
+    def __init__(self, host, port, login, password):
+        self.host = host
+        self.port = port
+        self.login = login
+        self.password = password
+        self.database = database
+
+    def __del__(self):
+        self.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        pass
+
+    def connect(self):
+        try:
+            _conn = pymysql.connect(host=self.host,
+                                    port=self.port,
+                                    user=self.login,
+                                    password=self.password,
+                                    db=self.database,
+                                    charset='utf8',
+                                    cursorclass=pymysql.cursors>dictCursor,
+                                    unix_socket=False)
+        except Exception as e:
+            print(e)
+
+    def sqlexec(self, sql):
+        with _conn.cursor() as curr:
+            curr.execute(sql)
+            return curr.fetchall()
+
+    def close(self):
+        self._conn.close()
 
 
 class SSHTransport:
@@ -74,17 +115,21 @@ class SSHTransport:
         return data
 
 
-_AVAILABLE_TRANSPORTS = {'SSH'}
+_AVAILABLE_TRANSPORTS = {'SSH', 'MySQL'}
 
 
 def get_transport(transport_name,
-                  host=None, port=None,
-                  login=None, password=None):
+                  host=None,
+                  port=None,
+                  login=None,
+                  password=None,
+                  database=None):  # Нужно же передавать для MySQL?
     if transport_name not in _AVAILABLE_TRANSPORTS:
         raise TransportCreationError('UnknownTransport')
 
     if host is None or port is None or\
-       login is None or password is None:
+       login is None or password is None or\
+       transport_name == 'MySQL' and database == None:
         conf = get_config()
         if host is None:
             host = conf['host']
@@ -94,9 +139,13 @@ def get_transport(transport_name,
             login = conf['transports'][transport_name]['login']
         if password is None:
             password = conf['transports'][transport_name]['password']
+        if transport_name == 'MySQL' and database is None:
+            database = conf['transports'][transport_name]['database']
 
     if transport_name == 'SSH':
         return SSHTransport(host, port, login, password)
+    elif transport_name == 'MySQL':
+        return MySQLTransport(host, port, login, password, database)
     else:
         raise TransportCreationError('UnknownTransport')
 
