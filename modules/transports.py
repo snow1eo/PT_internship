@@ -1,6 +1,6 @@
 import json
-import os.path
 
+import os.path
 import paramiko
 import pymysql.cursors
 
@@ -31,12 +31,13 @@ _config = None
 
 class MySQLTransport:
 
-    def __init__(self, host, port, login, password):
+    def __init__(self, host, port, login, password, database):
         self.host = host
         self.port = port
         self.login = login
         self.password = password
         self.database = database
+        self._conn = None
 
     def __del__(self):
         self.close()
@@ -49,22 +50,22 @@ class MySQLTransport:
 
     def connect(self):
         try:
-            _conn = pymysql.connect(host=self.host,
-                                    port=self.port,
-                                    user=self.login,
-                                    password=self.password,
-                                    db=self.database,
-                                    charset='utf8',
-                                    cursorclass=pymysql.cursors>dictCursor,
-                                    unix_socket=False)
-        except OperationalError as e_info:
+            self._conn = pymysql.connect(host=self.host,
+                                         port=self.port,
+                                         user=self.login,
+                                         password=self.password,
+                                         db=self.database,
+                                         charset='utf8',
+                                         cursorclass=pymysql.cursors.dictCursor,
+                                         unix_socket=False)
+        except Exception as e_info:
             if "Access denied" in e_info:
                 raise AuthenticationError(e_info)
             else:
                 raise TransportConnectionError(e_info)
 
     def sqlexec(self, sql):
-        with _conn.cursor() as curr:
+        with self._conn.cursor() as curr:
             try:
                 curr.execute(sql)
             except Exception as e_info:
@@ -139,7 +140,7 @@ def get_transport(transport_name,
 
     if host is None or port is None or\
        login is None or password is None or\
-       transport_name == 'MySQL' and database == None:
+       transport_name == 'MySQL' and database is None:
         conf = get_config()
         if host is None:
             host = conf['host']

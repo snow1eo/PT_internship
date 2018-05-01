@@ -24,11 +24,11 @@ def setup_module():
     client = docker.from_env()
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
     try:
-        cont = client.containers.run(image=images[0],
-                                     detach=True,
-                                     ports={'22/tcp': PORT_SSH},
-                                     name='cont_ubuntu_sshd',
-                                     auto_remove=False)
+        client.containers.run(image=images[0],
+                              detach=True,
+                              ports={'22/tcp': PORT_SSH},
+                              name='cont_ubuntu_sshd',
+                              auto_remove=False)
     except Exception as e:
         if str(e).startswith('409 Client Error: Conflict'):
             pass
@@ -38,12 +38,12 @@ def setup_module():
     # иногда падает и постоянно качает заново, кажется
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_MARIADB)
     try:
-        cont = client.containers.run(image=images[0],
-                                     detach=True,
-                                     ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},         
-                                     environment=ENV_SQL,
-                                     name='mariadb',
-                                     auto_remove=False)
+        client.containers.run(image=images[0],
+                              detach=True,
+                              ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},         
+                              environment=ENV_SQL,
+                              name='mariadb',
+                              auto_remove=False)
     except Exception as e:
         if str(e).startswith('409 Client Error: Conflict'):
             pass
@@ -57,14 +57,6 @@ def teardown_module():
     for container in containers:
         if container.name == 'cont_ubuntu_sshd' or\
            container.name == 'mariadb':
-            container.stop()
-            container.remove()
-
-
-def teardown_module():
-    containers = docker.from_env().containers.list()
-    for container in containers:
-        if container.name == 'cont_ubuntu_sshd':
             container.stop()
             container.remove()
 
@@ -89,6 +81,7 @@ def test_000_file_exist_2():
 
 
 def test_000_file_exist_3():
+    status = None
     containers = docker.from_env().containers.list()
     for container in containers:
         if container.name == 'cont_ubuntu_sshd':

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-from importlib import import_module
-from  os import listdir
 import re
+from importlib import import_module
+from os import listdir
 
-from modules.database import add_control, check_config,\
-            init_database, delete_database
+from modules.database import add_control, check_config, \
+    init_database, delete_database
 from modules.reporting import generate_report
-from modules.time import set_start_time, set_finish_time
 from modules.statuses import Statuses
+from modules.time import set_start_time, set_finish_time
 
 
 def run_tests():
@@ -32,4 +32,4 @@ if __name__ == '__main__':
     run_tests()
     set_finish_time()
     generate_report('sample_report.pdf')
-    #delete_database()
+    delete_database()

@@ -8,11 +8,9 @@ import pytest
 if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
-from modules.transports import get_config, get_transport,\
-    MySQLTransport, SSHTransport, \
+from modules.transports import get_config, get_transport, SSHTransport, \
     TransportCreationError, AuthenticationError, TransportConnectionError, \
-    TransportError, MySQLError
-
+    TransportError
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
@@ -26,11 +24,11 @@ def setup_module():
     client = docker.from_env()
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
     try:
-        cont = client.containers.run(image=images[0],
-                                     detach=True,
-                                     ports={'22/tcp': PORT_SSH},
-                                     name='cont_ubuntu_sshd',
-                                     auto_remove=False)
+        client.containers.run(image=images[0],
+                              detach=True,
+                              ports={'22/tcp': PORT_SSH},
+                              name='cont_ubuntu_sshd',
+                              auto_remove=False)
     except Exception as e:
         if str(e).startswith('409 Client Error: Conflict'):
             pass
@@ -40,12 +38,12 @@ def setup_module():
     # иногда падает и постоянно качает заново, кажется
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_MARIADB)
     try:
-        cont = client.containers.run(image=images[0],
-                                     detach=True,
-                                     ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},         
-                                     environment=ENV_SQL,
-                                     name='mariadb',
-                                     auto_remove=False)
+        client.containers.run(image=images[0],
+                              detach=True,
+                              ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},
+                              environment=ENV_SQL,
+                              name='mariadb',
+                              auto_remove=False)
     except Exception as e:
         if str(e).startswith('409 Client Error: Conflict'):
             pass

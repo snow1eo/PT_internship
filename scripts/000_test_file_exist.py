@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from modules.transports import get_transport, TransportConnectionError, TransportError
 from modules.statuses import Statuses
+from modules.transports import get_transport, TransportConnectionError, TransportError
 
 
 def main():
@@ -19,5 +19,5 @@ def main():
         if str(err).endswith('File not found'):
             return Statuses.NOT_COMPLIANT.value
         else:
-            return statuses['ERROR']['code']
+            return Statuses.ERROR.value
     return Statuses.COMPLIANT.value

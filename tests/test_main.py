@@ -8,6 +8,7 @@ sys.path.append(os.getcwd())
 from main import run_tests
 from modules.database import init_database
 
+
 TEST_DIR = '.test_tmp'
 
 
@@ -23,6 +24,7 @@ def teardown_module():
     os.chdir('..')
     if TEST_DIR in os.listdir():
         rmtree(TEST_DIR)
+
 
 def test_run_tests():
     # TODO 2
