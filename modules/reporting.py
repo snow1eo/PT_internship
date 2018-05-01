@@ -9,6 +9,7 @@ from weasyprint import HTML
 from modules.database import DB_NAME
 from modules.transports import get_config
 from modules.time import get_start_time, get_finish_time, get_duration
+from modules.statuses import get_status_name
 
 
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
@@ -39,15 +40,22 @@ def get_context():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         total_controls = len(curr.execute('select * from control').fetchall())
-        Compliance = namedtuple('Compliance',
-                                'ID, title, description, status')
+        Control = namedtuple('Control',
+                                'ID, title, description, requirement, system, status')
         # Это кошмар, я понимаю, но понятия не имею, как сделать качественнее
         # Вложенные запросы?
-        compliances = [Compliance(ID, *curr.execute('select * from control where id={}'
-                .format(control_id)).fetchone()[1:], status) for ID, control_id, status
-                in curr.execute('select * from scandata').fetchall()]
+        # Или имеет смысл заполнять последовательно, а не за 1 проход в 1 строку?
+        controls = [Control(
+                    ID,
+                    *curr.execute('select * from control where id={}'
+                        .format(control_id)).fetchone()[1:4],
+                    curr.execute('select * from control where id={}'
+                        .format(control_id)).fetchone()[code+2],
+                    get_status_name(code))
+                    for ID, control_id, code in
+                        curr.execute('select * from scandata').fetchall()]
     context.update({'total_controls': total_controls})
-    context.update({'compliances': compliances})
+    context.update({'controls': controls})
     return context
 
 

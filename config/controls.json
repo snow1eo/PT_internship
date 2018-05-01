@@ -1,11 +1,11 @@
 [
     ["000",
      "Testscript",
-     "File named 'testfile' exist in the root folder on system.",
-     {
-        "1": "File exist",
-        "2": "File doesn't exist",
-        "3": "Not applicable - no transport",
-        "4": "Script error",
-        "5": "Exception"}]
+     "File named 'testfile' exist in the root folder on system.",    
+     "File exist",
+     "File doesn't exist",
+     "Not applicable - no transport",
+     "Script error",
+     "Exception"
+    ]
 ]

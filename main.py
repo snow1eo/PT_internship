@@ -1,37 +1,35 @@
 #!/usr/bin/env python3
 
-import importlib
-# import pathlib
-import os
+from importlib import import_module
+from  os import listdir
 import re
 
-import modules.database as db
+from modules.database import add_control, check_config,\
+            init_database, delete_database
 from modules.reporting import generate_report
 from modules.time import set_start_time, set_finish_time
 from modules.statuses import Statuses
 
 
 def run_tests():
-    tests = [test.strip('.py') for test in os.listdir('scripts')
+    tests = [test.strip('.py') for test in listdir('scripts')
              if re.match(r'\d+_.+\.py', test)]
-    # Тут только такой вариант заставил работать, и он мне вообще не нравится ><
-    # tests = map(lambda x:str(x).strip('.py').lstrip('scripts'), pathlib.Path('scripts').glob(r'[0-9][0-9][0-9]_*.py'))
     for test in tests:
         ctrl_id = re.findall(r'\d+', test)[0]
         try:
-            test_mod = importlib.import_module('.'+test, package='scripts')
+            test_mod = import_module('.'+test, package='scripts')
             status = test_mod.main()
         except Exception as e_info:
             print('ERROR: {}'.format(e_info))
             status = Statuses.EXCEPTION.value
-        db.add_control(ctrl_id, status)
+        add_control(ctrl_id, status)
 
 
 if __name__ == '__main__':
-    db.check_config()
-    db.init_database()
+    check_config()
+    init_database()
     set_start_time()
     run_tests()
     set_finish_time()
     generate_report('sample_report.pdf')
-    db.delete_database()
+    delete_database()

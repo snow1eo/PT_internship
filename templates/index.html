@@ -37,6 +37,8 @@
         <p> Start: {{ start_time }} </p>
         <p> Finish: {{ finish_time }}
         <p> Duration: {{ duration }} </p>
+    </div>
+    <div>
         <p> Total controls: {{ total_controls }} </p>
         {% for status in statuses %}
         <p> {{ status.name }}: {{ status.count }} </p>
@@ -44,17 +46,17 @@
     </div>
 </article>
 
-{% for compliance in compliances %}
+{% for control in controls %}
 <article class="A4">
     <article>
-        <h3>{{ compliance.title }}</h3>
-        <h4>id: {{ compliance.ID }}</h4>
+        <h3>{{ control.title }}</h3>
+        <h4>id: {{ control.ID }}</h4>
 
-        <p> Requirement: {{ compliance.requirement }} </p>
-        <p> System: TODO </p>
-        <p> Status: {{ compliance.status }}</p>
+        <p> Requirement: {{ control.requirement }} </p>
+        <p> System: {{ control.system }} </p>
+        <p> Status: {{ control.status }}</p>
         <p>
-            {{ compliance.description }}
+            {{ control.description }}
         </p>
     </article>
 
