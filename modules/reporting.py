@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import sys
-from collections import namedtuple
+from collections import namedtuple, Counter
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML
@@ -39,7 +39,6 @@ def get_context():
 
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        total_controls = len(curr.execute('select * from control').fetchall())
         Control = namedtuple('Control',
                                 'ID, title, description, requirement, system, status')
         # Это кошмар, я понимаю, но понятия не имею, как сделать качественнее
@@ -54,8 +53,12 @@ def get_context():
                     get_status_name(code))
                     for ID, control_id, code in
                         curr.execute('select * from scandata').fetchall()]
-    context.update({'total_controls': total_controls})
+    context.update({'total_controls': len(controls)})
     context.update({'controls': controls})
+    context.update({'statuses': {get_status_name(code): 0 for code in range(1,6)}})
+    context['statuses'].update(dict(Counter([control.status
+                for control in controls])))
+
     return context
 
 

@@ -40,8 +40,8 @@
     </div>
     <div>
         <p> Total controls: {{ total_controls }} </p>
-        {% for status in statuses %}
-        <p> {{ status.name }}: {{ status.count }} </p>
+        {% for name, count in statuses.items() %}
+        <p> {{ name }}: {{ count }} </p>
         {% endfor %}
     </div>
 </article>
