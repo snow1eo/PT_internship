@@ -8,18 +8,18 @@ import pytest
 if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
-from modules.transports import get_transport, SSHTransport, \
+from modules.transports import get_config, get_transport,\
+    MySQLTransport, SSHTransport, \
     TransportCreationError, AuthenticationError, TransportConnectionError, \
-    TransportError
+    TransportError, MySQLError
 
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
-PORT_SSH = 22022
+PORT_SSH = get_config()['transports']['SSH']['port']
 DOCKER_FILE_MARIADB = 'Dockerfile_mariadb'
-PORT_SQL = 43306
-ENV_SQL = {'MYSQL_ROOT_PASSWORD': 'pwd123', 'MYSQL_USER': 'sauser',
-           'MYSQL_PASSWORD': 'sapassword', 'MYSQL_DATABASE': 'sadb'}
+PORT_SQL = get_config()['transports']['MySQL']['port']
+ENV_SQL = get_config()['transports']['MySQL']['environment']
 
 
 def setup_module():
@@ -30,9 +30,12 @@ def setup_module():
                                      detach=True,
                                      ports={'22/tcp': PORT_SSH},
                                      name='cont_ubuntu_sshd',
-                                     auto_remove=True)
+                                     auto_remove=False)
     except Exception as e:
-        print(e)
+        if str(e).startswith('409 Client Error: Conflict'):
+            pass
+        else:
+            print(e)
     # Есть pull, но он работает неадекватно - медленно,
     # иногда падает и постоянно качает заново, кажется
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_MARIADB)
@@ -42,9 +45,12 @@ def setup_module():
                                      ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},         
                                      environment=ENV_SQL,
                                      name='mariadb',
-                                     auto_remove=True)
+                                     auto_remove=False)
     except Exception as e:
-        print(e)
+        if str(e).startswith('409 Client Error: Conflict'):
+            pass
+        else:
+            print(e)
     sleep(5)
 
 
@@ -54,6 +60,7 @@ def teardown_module():
         if container.name == 'cont_ubuntu_sshd' or\
            container.name == 'mariadb':
             container.stop()
+            container.remove()
 
 
 def test_get_transport_from_params_pass():

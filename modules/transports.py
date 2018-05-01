@@ -21,6 +21,10 @@ class TransportCreationError(TransportError):
     pass
 
 
+class MySQLError(TransportError):
+    pass
+
+
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
 
@@ -53,12 +57,18 @@ class MySQLTransport:
                                     charset='utf8',
                                     cursorclass=pymysql.cursors>dictCursor,
                                     unix_socket=False)
-        except Exception as e:
-            print(e)
+        except OperationalError as e_info:
+            if "Access denied" in e_info:
+                raise AuthenticationError(e_info)
+            else:
+                raise TransportConnectionError(e_info)
 
     def sqlexec(self, sql):
         with _conn.cursor() as curr:
-            curr.execute(sql)
+            try:
+                curr.execute(sql)
+            except Exception as e_info:
+                raise MySQLError(e_info)
             return curr.fetchall()
 
     def close(self):
