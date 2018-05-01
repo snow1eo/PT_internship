@@ -74,15 +74,13 @@ class SSHTransport:
         return data
 
 
-_available_transports = {'SSH'}
+_AVAILABLE_TRANSPORTS = {'SSH'}
 
 
 def get_transport(transport_name,
-                  host=None,
-                  port=None,
-                  login=None,
-                  password=None):
-    if transport_name not in _available_transports:
+                  host=None, port=None,
+                  login=None, password=None):
+    if transport_name not in _AVAILABLE_TRANSPORTS:
         raise TransportCreationError('UnknownTransport')
 
     if host is None or port is None or\
