@@ -51,7 +51,7 @@ def get_context():
     return context
 
 
-def generate_report():
+def generate_report(report_name):
     rendered = render(TEMPLATE_HTML, get_context())
     document = HTML(string=rendered).render()
-    document.write_pdf('sample_report.pdf')
+    document.write_pdf(report_name)

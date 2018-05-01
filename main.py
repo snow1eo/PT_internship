@@ -33,5 +33,5 @@ if __name__ == '__main__':
     set_start_time()
     run_tests()
     set_finish_time()
-    generate_report()
+    generate_report('sample_report.pdf')
     db.delete_database()
