@@ -60,8 +60,7 @@ def test_init_database():
 
 
 def test_add_control_pass():
-    controls = [[str(TEST_NUM_PASS), 'title', 'description', 'requirement',
-                'not_compliant', 'no transport', 'error', 'exception']]
+    controls = [[str(TEST_NUM_PASS), 'title', 'description', 'requirement']]
     with open(CFG_NAME, 'w') as f:
         json.dump(controls, f)
     init_database()

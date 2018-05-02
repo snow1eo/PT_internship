@@ -9,7 +9,7 @@ _finish_time = None
 def set_start_time():
     global _start_time_sec
     global _start_time
-    if _start_time is None:
+    if not _start_time:
         _start_time_sec = time.time()
         _start_time = time.ctime()
 
@@ -21,7 +21,7 @@ def get_start_time():
 def set_finish_time():
     global _finish_time_sec
     global _finish_time
-    if _finish_time is None:
+    if not _finish_time:
         _finish_time_sec = time.time()
         _finish_time = time.ctime()
 

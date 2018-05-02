@@ -48,16 +48,11 @@ def init_database():
                         id INTEGER PRIMARY KEY,
                         title TEXT,
                         description TEXT,
-                        compliant_msg TEXT,
-                        not_compliant_msg TEXT,
-                        not_applicable_msg TEXT,
-                        error_msg TEXT,
-                        exception_msg TEXT)""")
+                        requirement)""")
         with open(CFG_NAME) as f:
             controls = json.load(f)
         for control in controls:
-            curr.execute("INSERT INTO control VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                            control)
+            curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)", control)
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
                     id INTEGER PRIMARY KEY,
                     ctrl_id INTEGER NOT NULL,

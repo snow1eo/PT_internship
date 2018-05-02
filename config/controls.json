@@ -2,10 +2,6 @@
     ["000",
      "Testscript",
      "File named 'testfile' exist in the root folder on system.",    
-     "File exist",
-     "File doesn't exist",
-     "Not applicable - no transport",
-     "Script error",
-     "Exception"
+     "File exist"
     ]
 ]
