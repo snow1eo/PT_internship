@@ -78,8 +78,7 @@ def test_get_mysql_transport_from_params_pass():
                         host='localhost',
                         port=PORT_SQL,
                         login='root',
-                        password=ENV_SQL['MYSQL_ROOT_PASSWORD'],
-                        database=ENV_SQL['MYSQL_DATABASE'])
+                        password=ENV_SQL['MYSQL_ROOT_PASSWORD'])
     assert isinstance(sql, MySQLTransport)
 
 
@@ -98,15 +97,36 @@ class TestMySQLTransport:
 
     def test_connect_pass(self):
         with get_transport('MySQL') as sql:
-            sql.connect()
+            sql.connect(ENV_SQL['MYSQL_DATABASE'])
 
-    # def sqlexec(self, sql):
-    #     with self._conn.cursor() as curr:
-    #         try:
-    #             curr.execute(sql)
-    #         except Exception as e_info:
-    #             raise MySQLError(e_info)
-    #         return curr.fetchall()
+    def test_connect_wrong_auth(self):
+        with get_transport('MySQL', password='wrong') as sql, \
+                        pytest.raises(AuthenticationError) as e_info:
+            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+        assert str(e_info).endswith('Authentication failed')
+
+    def test_connect_wrong_host(self):
+        with get_transport('MySQL', port=666) as sql,\
+                        pytest.raises(TransportConnectionError) as e_info:
+            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+        assert str(e_info).endswith("Couldn't connect to host")
+
+    def test_connect_wrong_db(self):
+        with get_transport('MySQL') as sql,\
+                        pytest.raises(TransportConnectionError) as e_info:
+            sql.connect('wrong_database')
+        assert str(e_info).endswith("Unknown database")
+
+    def test_sqlexec_pass(self):
+        with get_transport('MySQL') as sql:
+            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.sqlexec('SHOW DATABASES')
+
+    def test_sqlexec_wrong_request(self):
+        with get_transport('MySQL') as sql, \
+                        pytest.raises(MySQLError):
+            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.sqlexec('WRONG REQUEST')
 
 
 class TestSSHTransport:
