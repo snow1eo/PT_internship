@@ -6,7 +6,7 @@ from modules.transports import get_transport, UnknownDatabase, \
 from modules.database import get_controls
 
 
-ENV = get_controls()[-1]
+ENV = get_controls()['001']['env']
 
 
 def main():

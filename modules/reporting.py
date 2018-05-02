@@ -2,7 +2,8 @@ import os
 import sqlite3
 from collections import namedtuple, Counter
 
-import pdfkit
+# import pdfkit
+from weasyprint import HTML, CSS
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from modules.database import DB_NAME
@@ -54,4 +55,8 @@ def get_context():
 
 def generate_report(report_name):
     rendered = render(TEMPLATE_HTML, get_context())
-    pdfkit.from_string(rendered, report_name, css=CSS_FILE)
+    doc = HTML(string=rendered)
+    wcss = CSS(filename=CSS_FILE)
+    doc.write_pdf(report_name, stylesheets=[wcss])
+
+    # pdfkit.from_string(rendered, report_name, css=CSS_FILE)
