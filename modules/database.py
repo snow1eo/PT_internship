@@ -5,7 +5,6 @@ import sqlite3
 
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
-STAT_FILE = os.path.join('config', 'statuses.json')
 
 
 class DatabaseError(Exception):
@@ -30,11 +29,12 @@ def check_config():
     test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')
                  if re.match(r'\d+_.+\.py', test)]
     if len(test_nums) != len(set(test_nums)):
-        raise DuplicateTestNumError("duplicate test numbers in 'scripts' directory")
+        raise DuplicateTestNumError("duplicate test numbers in 'scripts'")
     with open(CFG_NAME) as f:
         cfg_nums = [int(ctrl[0]) for ctrl in json.load(f)]
     if len(cfg_nums) != len(set(cfg_nums)):
-        raise DuplicateTestNumError("duplicate tests numbers in '{}'".format(CFG_NAME))
+        raise DuplicateTestNumError("duplicate tests numbers in '{}'"
+            .format(CFG_NAME))
     if not set(test_nums).issubset(set(cfg_nums)):
         raise ConfigError("{} doesn't match scripts".format(CFG_NAME))
 
@@ -69,5 +69,5 @@ def add_control(ctrl_id, status):
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
-        curr.execute("""INSERT INTO scandata(id, ctrl_id, status)
-                    VALUES (NULL, ?, ?)""", (ctrl_id, status))
+        curr.execute("INSERT INTO scandata VALUES (NULL, ?, ?)",
+            (ctrl_id, status))

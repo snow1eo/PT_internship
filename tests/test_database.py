@@ -45,7 +45,7 @@ def test_init_database():
     assert DB_NAME in os.listdir()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        curr.execute("""SELECT name FROM sqlite_master where type = 'table'""")
+        curr.execute("SELECT name FROM sqlite_master where type = 'table'")
         tables = curr.fetchall()
         tables = list(map(list, tables))  # Converting a list
         tables = set(sum(tables, []))     # to a linear set
