@@ -1,7 +1,12 @@
 [
     ["000",
-     "Testscript",
+     "File '/testfile' exist",
      "File named 'testfile' exist in the root folder on system.",    
      "File exist"
+    ],
+    ["001",
+    "Database 'testdb' exist",
+    "Database 'testdb' exist on system and has not empty tables",
+    "Database exist"
     ]
 ]

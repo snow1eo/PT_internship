@@ -51,7 +51,7 @@ def setup_module():
         else:
             print(e)
     client.containers.prune()
-    sleep(5)
+    sleep(10)
 
 
 def teardown_module():

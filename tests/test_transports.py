@@ -10,7 +10,7 @@ if os.getcwd().endswith('tests'):
 sys.path.append(os.getcwd())
 from modules.transports import get_config, get_transport, SSHTransport, \
     MySQLTransport, TransportCreationError, AuthenticationError, \
-    TransportConnectionError, TransportError, MySQLError
+    TransportConnectionError, TransportError, MySQLError, UnknownDatabase
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
@@ -51,7 +51,7 @@ def setup_module():
         else:
             print(e)
     client.containers.prune()
-    sleep(5)
+    sleep(10)
 
 
 def teardown_module():
@@ -97,35 +97,35 @@ class TestMySQLTransport:
 
     def test_connect_pass(self):
         with get_transport('MySQL') as sql:
-            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.connect()
 
     def test_connect_wrong_auth(self):
         with get_transport('MySQL', password='wrong') as sql, \
                         pytest.raises(AuthenticationError) as e_info:
-            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.connect()
         assert str(e_info).endswith('Authentication failed')
 
     def test_connect_wrong_host(self):
         with get_transport('MySQL', port=666) as sql,\
                         pytest.raises(TransportConnectionError) as e_info:
-            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.connect()
         assert str(e_info).endswith("Couldn't connect to host")
 
     def test_connect_wrong_db(self):
         with get_transport('MySQL') as sql,\
-                        pytest.raises(TransportConnectionError) as e_info:
+                        pytest.raises(UnknownDatabase) as e_info:
             sql.connect('wrong_database')
         assert str(e_info).endswith("Unknown database")
 
     def test_sqlexec_pass(self):
         with get_transport('MySQL') as sql:
-            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.connect()
             sql.sqlexec('SHOW DATABASES')
 
     def test_sqlexec_wrong_request(self):
         with get_transport('MySQL') as sql, \
                         pytest.raises(MySQLError):
-            sql.connect(ENV_SQL['MYSQL_DATABASE'])
+            sql.connect()
             sql.sqlexec('WRONG REQUEST')
 
 

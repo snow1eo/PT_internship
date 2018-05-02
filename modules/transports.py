@@ -25,6 +25,10 @@ class MySQLError(TransportError):
     pass
 
 
+class UnknownDatabase(TransportConnectionError):
+    pass
+
+
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
 
@@ -47,7 +51,7 @@ class MySQLTransport:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         pass
 
-    def connect(self, database):
+    def connect(self, database=None):
         try:
             self._conn = pymysql.connect(host=self.host,
                                          port=self.port,
@@ -64,7 +68,7 @@ class MySQLTransport:
                 raise TransportConnectionError("Couldn't connect to host")
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
-                raise TransportConnectionError("Unknown database")
+                raise UnknownDatabase("Unknown database")
 
     def sqlexec(self, sql):
         with self._conn.cursor() as curr:
