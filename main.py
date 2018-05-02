@@ -2,9 +2,8 @@
 
 from modules.database import check_config, init_database, delete_database
 from modules.reporting import generate_report
-from modules.time import set_start_time, set_finish_time
 from modules.testing import run_tests
-
+from modules.time import set_start_time, set_finish_time
 
 if __name__ == '__main__':
     check_config()

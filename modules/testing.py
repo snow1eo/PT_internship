@@ -1,10 +1,9 @@
+import os
 import re
 from importlib import import_module
-import os
 
 from modules.database import add_control, check_config
 from modules.statuses import Statuses
-import scripts
 
 
 def get_tests():

@@ -1,15 +1,14 @@
 import os
 import sys
-import pytest
 from shutil import rmtree, copytree
+
+import pytest
 
 if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
-from modules.database import init_database, delete_database
-from modules.testing import run_tests
-from modules.reporting import TEMPLATE_HTML, CSS_FILE, ENV,\
-        render, get_context, generate_report
+from modules.database import init_database
+from modules.reporting import TEMPLATE_HTML, render, get_context, generate_report
 from modules.time import set_start_time, set_finish_time
 
 

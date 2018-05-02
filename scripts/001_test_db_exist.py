@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-from modules.statuses import Statuses
-from modules.transports import get_transport, UnknownDatabase, \
-        TransportConnectionError
 from modules.database import get_controls
-
+from modules.statuses import Statuses
+from modules.transports import get_transport, TransportConnectionError
 
 ENV = get_controls()['001']['env']
 
@@ -22,11 +20,11 @@ def main():
             if ENV['db_name'] not in databases:
                 return Statuses.NOT_COMPLIANT.value
             tables = [table['Tables_in_{db_name}'.format(**ENV)] for table in 
-                      sql.sqlexec('SHOW TABLES FROM {}'.format(**ENV))]
+                      sql.sqlexec('SHOW TABLES FROM {db_name}'.format(**ENV))]
             if ENV['table_name'] not in tables:
                 return Statuses.NOT_COMPLIANT.value
-            if sql.sqlexec('''SHOW COLUMNS FROM {table_name} FROM
-                               {db_name}'''.format(**ENV)):
+            sql.connect(ENV['db_name'])
+            if sql.sqlexec('''SELECT * FROM {table_name}'''.format(**ENV)):
                     return Statuses.COMPLIANT.value
             return Statuses.NOT_COMPLIANT.value
         except MySQLError as err:

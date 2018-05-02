@@ -1,6 +1,7 @@
-import pytest
 import os
 import sys
+
+import pytest
 
 if os.getcwd().endswith('tests'):
     os.chdir('..')

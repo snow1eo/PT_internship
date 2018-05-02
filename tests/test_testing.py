@@ -1,9 +1,10 @@
 import os
-import pytest
+import re
 import sqlite3
 import sys
-import re
 from shutil import rmtree, copytree
+
+import pytest
 
 if os.getcwd().endswith('tests'):
     os.chdir('..')

@@ -2,9 +2,9 @@ import os
 import sqlite3
 from collections import namedtuple, Counter
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 # import pdfkit
 from weasyprint import HTML, CSS
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from modules.database import DB_NAME
 from modules.statuses import get_status_name

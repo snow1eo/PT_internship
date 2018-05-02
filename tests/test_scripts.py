@@ -64,26 +64,26 @@ def teardown_module():
 
 
 def test_000_file_exist_1():
-    ssh = get_transport('SSH')
-    ssh.connect()
-    ssh.execute('touch /testfile')
+    with get_transport('SSH') as ssh:
+        ssh.connect()
+        ssh.execute('touch /testfile')
     mod = importlib.import_module('.000_test_file_exist', package='scripts')
     assert mod.main() == Statuses.COMPLIANT.value
 
 
 def test_000_file_exist_2():
-    ssh = get_transport('SSH')
-    ssh.connect()
-    try:
-        ssh.execute('rm -f /testfile')
-    except Exception as e_info:
-        pass
+    with get_transport('SSH') as ssh:
+        ssh.connect()
+        try:
+            ssh.execute('rm -f /testfile')
+        except Exception:
+            pass
     mod = importlib.import_module('.000_test_file_exist', package='scripts')
     assert mod.main() == Statuses.NOT_COMPLIANT.value
 
 
 def test_000_file_exist_3():
-    status = None
+    status = None   # just for situation when container didn't start
     containers = docker.from_env().containers.list()
     for container in containers:
         if container.name == 'cont_ubuntu_sshd':
@@ -94,6 +94,32 @@ def test_000_file_exist_3():
     assert status == Statuses.NOT_APPLICABLE.value
 
 
-def test_000_file_exist_4():
-    pass
-    # TODO (HOW?)
+def test_001_database_exist_1():
+    with get_transport('MySQL') sql:
+        sql.connect()
+        sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
+        sql.connect('test_db')
+        sql.sqlexec("""CREATE TABLE IF NOT EXISTS test (
+                name VARCHAR(20), owner VARCHAR(20))""")
+        # Почему-то не выполняется INSERT в этом месте, хотя если запустить
+        # отдельно - всё работает как нужно
+        sql.sqlexec("INSERT INTO test VALUES ('Dolly', 'Me')")
+    mod = importlib.import_module('.001_test_db_exist', package='scripts')
+    assert mod.main() == Statuses.COMPLIANT.value
+
+
+# def test_001_database_exist_2():
+#     mod = importlib.import_module('.001_test_db_exist', package='scripts')
+#     assert mod.main() == Statuses.NOT_COMPLIANT.value
+
+
+def test_001_database_exist_3():
+    status = None   # just for situation when container didn't start
+    containers = docker.from_env().containers.list()
+    for container in containers:
+        if container.name == 'mariadb':
+            container.stop()
+            mod = importlib.import_module('.001_test_db_exist', package='scripts')
+            status = mod.main()
+            container.start()
+    assert status == Statuses.NOT_APPLICABLE.value

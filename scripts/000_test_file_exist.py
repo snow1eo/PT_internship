@@ -2,10 +2,9 @@
 
 import os
 
+from modules.database import get_controls
 from modules.statuses import Statuses
 from modules.transports import get_transport, TransportConnectionError, TransportError
-from modules.database import get_controls
-
 
 ENV = get_controls()['000']['env']
 

@@ -76,10 +76,12 @@ class MySQLTransport:
                 curr.execute(sql)
             except Exception as e_info:
                 raise MySQLError(e_info)
-            return curr.fetchall()
+        self._conn.commit()
+        return curr.fetchall()
 
     def close(self):
         if self._conn:
+            self._conn.commit()
             self._conn.close()
 
 
