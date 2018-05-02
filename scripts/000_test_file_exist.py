@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 
+import os
+
 from modules.statuses import Statuses
 from modules.transports import get_transport, TransportConnectionError, TransportError
+from modules.database import get_controls
+
+
+ENV = get_controls()['000']['env']
 
 
 def main():
@@ -14,7 +20,7 @@ def main():
             else:
                 return Statuses.ERROR.value
         try:
-            ssh.get_file('/testfile')
+            ssh.get_file(os.path.join(ENV['path'], ENV['name']))
         except TransportError as err:
             if str(err).endswith('File not found'):
                 return Statuses.NOT_COMPLIANT.value

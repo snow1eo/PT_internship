@@ -1,12 +1,20 @@
-[
-    ["000",
-     "File '/testfile' exist",
-     "File named 'testfile' exist in the root folder on system.",    
-     "File exist"
-    ],
-    ["001",
-    "Database 'testdb' exist",
-    "Database 'testdb' exist on system and has not empty tables",
-    "Database exist"
-    ]
-]
+{
+    "000": {
+        "title": "File '/testfile' exist",
+        "descr": "File named 'testfile' exist in the root folder on system.",    
+        "req": "File exist",
+        "env": {
+            "name": "testfile",
+            "path": "/"
+        }
+    },
+    "001": {
+        "title": "Database 'testdb' exist",
+        "descr": "Database 'testdb' exist on system and has not empty table test_table",
+        "req": "Database exist",
+        "env": {
+            "db_name": "testdb",
+            "table_name": "test_table"
+        }
+    }
+}

@@ -10,7 +10,7 @@ if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
 from modules.database import CFG_NAME, DB_NAME, \
-    check_config, init_database, add_control
+    check_config, init_database, add_control, get_controls
 
 
 TEST_DIR = '.test_tmp'
@@ -51,16 +51,22 @@ def test_init_database():
         tables = set(sum(tables, []))     # to a linear set
         assert tables == REQUIRED_TABLES
         assert not curr.execute("""SELECT * FROM scandata""").fetchall()
-        with open(CFG_NAME) as f:
-            # Converting to form to compare
-            required_controls = set(map(lambda x: (int(x[0]), *x[1:]),
-                                        map(tuple, json.load(f))))
-        controls = set(curr.execute("""SELECT * FROM control""").fetchall())
+        # Converting to form to compare
+        required_controls = {int(id_): {'title': p['title'], 'descr': p['descr'],
+                            'req': p['req']} for id_, p in get_controls().items()}
+        controls = {id_: {'title': title, 'descr': descr, 'req': req} for
+                id_, title, descr, req in curr.execute("SELECT * FROM control").fetchall()}
         assert controls == required_controls
 
 
 def test_add_control_pass():
-    controls = [[str(TEST_NUM_PASS), 'title', 'description', 'requirement']]
+    controls = {
+            str(TEST_NUM_PASS): {
+                "title": "",
+                "descr": "",
+                "req": "",
+                "env": {}
+                }}
     with open(CFG_NAME, 'w') as f:
         json.dump(controls, f)
     init_database()

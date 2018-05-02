@@ -3,6 +3,10 @@
 from modules.statuses import Statuses
 from modules.transports import get_transport, UnknownDatabase, \
         TransportConnectionError
+from modules.database import get_controls
+
+
+ENV = get_controls()[-1]
 
 
 def main():
@@ -15,14 +19,14 @@ def main():
             return Statuses.ERROR.value
         try:
             databases = [db['Database'] for db in sql.sqlexec('SHOW DATABASES')]
-            if 'testdb' not in databases:
+            if ENV['db_name'] not in databases:
                 return Statuses.NOT_COMPLIANT.value
-            tables = sql.sqlexec('SHOW TABLES FROM testdb')
-            if not tables:
+            tables = [table['Tables_in_{db_name}'.format(**ENV)] for table in 
+                      sql.sqlexec('SHOW TABLES FROM {}'.format(**ENV))]
+            if ENV['table_name'] not in tables:
                 return Statuses.NOT_COMPLIANT.value
-            for table in tables:
-                if sql.sqlexec('''SHOW COLUMNS FROM {} FROM
-                               testdb'''.format(table['Tables_in_testdb'])):
+            if sql.sqlexec('''SHOW COLUMNS FROM {table_name} FROM
+                               {db_name}'''.format(**ENV)):
                     return Statuses.COMPLIANT.value
             return Statuses.NOT_COMPLIANT.value
         except MySQLError as err:

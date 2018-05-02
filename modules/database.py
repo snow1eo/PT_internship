@@ -23,6 +23,17 @@ class DuplicateTestNumError(ConfigError):
     pass
 
 
+_controls = None
+
+
+def get_controls():
+    global _controls
+    if not _controls:
+        with open(CFG_NAME) as f:
+            _controls = json.load(f)
+    return _controls
+
+
 def check_config():
     if not os.path.exists(CFG_NAME):
         raise ConfigError("{} doesn't exist".format(CFG_NAME))
@@ -30,17 +41,15 @@ def check_config():
                  if re.match(r'\d+_.+\.py', test)]
     if len(test_nums) != len(set(test_nums)):
         raise DuplicateTestNumError("duplicate test numbers in 'scripts'")
-    with open(CFG_NAME) as f:
-        cfg_nums = [int(ctrl[0]) for ctrl in json.load(f)]
-    if len(cfg_nums) != len(set(cfg_nums)):
-        raise DuplicateTestNumError("duplicate tests numbers in '{}'"
-            .format(CFG_NAME))
-    if not set(test_nums).issubset(set(cfg_nums)):
+    cfg_nums = set(map(int, get_controls().keys()))
+    if not set(test_nums).issubset(cfg_nums):
         raise ConfigError("{} doesn't match scripts".format(CFG_NAME))
 
 
 def init_database():
     delete_database()
+    global _controls
+    _controls = None
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
@@ -49,10 +58,10 @@ def init_database():
                         title TEXT,
                         description TEXT,
                         requirement)""")
-        with open(CFG_NAME) as f:
-            controls = json.load(f)
-        for control in controls:
-            curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)", control)
+        controls = get_controls()
+        for id_, params in controls.items():
+            curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)",
+                    (id_, params['title'], params['descr'], params['req']))
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
                     id INTEGER PRIMARY KEY,
                     ctrl_id INTEGER NOT NULL,
