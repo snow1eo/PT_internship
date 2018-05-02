@@ -2,7 +2,7 @@ import json
 
 import os.path
 import paramiko
-import pymysql.cursors
+import pymysql
 
 
 class TransportError(Exception):
@@ -56,10 +56,10 @@ class MySQLTransport:
                                          password=self.password,
                                          db=self.database,
                                          charset='utf8',
-                                         cursorclass=pymysql.cursors.dictCursor,
+                                         cursorclass=pymysql.cursors.DictCursor,
                                          unix_socket=False)
         except Exception as e_info:
-            if "Access denied" in e_info:
+            if "Access denied" in str(e_info):
                 raise AuthenticationError(e_info)
             else:
                 raise TransportConnectionError(e_info)
@@ -73,7 +73,8 @@ class MySQLTransport:
             return curr.fetchall()
 
     def close(self):
-        self._conn.close()
+        if self._conn:
+            self._conn.close()
 
 
 class SSHTransport:

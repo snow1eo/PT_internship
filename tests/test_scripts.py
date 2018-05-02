@@ -22,6 +22,7 @@ ENV_SQL = get_config()['transports']['MySQL']['environment']
 
 def setup_module():
     client = docker.from_env()
+    client.containers.prune()
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
     try:
         client.containers.run(image=images[0],
@@ -40,7 +41,7 @@ def setup_module():
     try:
         client.containers.run(image=images[0],
                               detach=True,
-                              ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},         
+                              ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},
                               environment=ENV_SQL,
                               name='mariadb',
                               auto_remove=False)
@@ -49,13 +50,14 @@ def setup_module():
             pass
         else:
             print(e)
+    client.containers.prune()
     sleep(5)
 
 
 def teardown_module():
     containers = docker.from_env().containers.list()
     for container in containers:
-        if container.name == 'cont_ubuntu_sshd' or\
+        if container.name == 'cont_ubuntu_sshd' or \
            container.name == 'mariadb':
             container.stop()
             container.remove()

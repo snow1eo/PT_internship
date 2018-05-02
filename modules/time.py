@@ -31,6 +31,8 @@ def get_finish_time():
 
 
 def get_duration():
+    if not _finish_time_sec or not _start_time_sec:
+        return "Timer didn't set"
     full = int(_finish_time_sec - _start_time_sec)
     hours = full // 3600
     minutes = (full % 3600) // 60

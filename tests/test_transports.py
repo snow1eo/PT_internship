@@ -9,8 +9,8 @@ if os.getcwd().endswith('tests'):
     os.chdir('..')
 sys.path.append(os.getcwd())
 from modules.transports import get_config, get_transport, SSHTransport, \
-    TransportCreationError, AuthenticationError, TransportConnectionError, \
-    TransportError
+    MySQLTransport, TransportCreationError, AuthenticationError, \
+    TransportConnectionError, TransportError, MySQLError
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
@@ -22,6 +22,7 @@ ENV_SQL = get_config()['transports']['MySQL']['environment']
 
 def setup_module():
     client = docker.from_env()
+    client.containers.prune()
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
     try:
         client.containers.run(image=images[0],
@@ -49,26 +50,42 @@ def setup_module():
             pass
         else:
             print(e)
+    client.containers.prune()
     sleep(5)
 
 
 def teardown_module():
     containers = docker.from_env().containers.list()
     for container in containers:
-        if container.name == 'cont_ubuntu_sshd' or\
+        if container.name == 'cont_ubuntu_sshd' or \
            container.name == 'mariadb':
             container.stop()
             container.remove()
 
 
-def test_get_transport_from_params_pass():
-    ssh = get_transport('SSH', 'localhost', 22022, 'root', 'pwd')
+def test_get_ssh_transport_from_params_pass():
+    ssh = get_transport('SSH', 'localhost', PORT_SSH, 'root', 'pwd')
     assert isinstance(ssh, SSHTransport)
 
 
-def test_get_transport_from_config_pass():
+def test_get_ssh_transport_from_config_pass():
     ssh = get_transport('SSH')
     assert isinstance(ssh, SSHTransport)
+
+
+def test_get_mysql_transport_from_params_pass():
+    sql = get_transport(transport_name='MySQL',
+                        host='localhost',
+                        port=PORT_SQL,
+                        login='root',
+                        password=ENV_SQL['MYSQL_ROOT_PASSWORD'],
+                        database=ENV_SQL['MYSQL_DATABASE'])
+    assert isinstance(sql, MySQLTransport)
+
+
+def test_get_mysql_transport_from_config_pass():
+    sql = get_transport('MySQL')
+    assert isinstance(sql, MySQLTransport)
 
 
 def test_get_transport_except():
@@ -77,7 +94,23 @@ def test_get_transport_except():
     assert str(e_info).endswith('UnknownTransport')
 
 
+class TestMySQLTransport:
+
+    def test_connect_pass(self):
+        with get_transport('MySQL') as sql:
+            sql.connect()
+
+    # def sqlexec(self, sql):
+    #     with self._conn.cursor() as curr:
+    #         try:
+    #             curr.execute(sql)
+    #         except Exception as e_info:
+    #             raise MySQLError(e_info)
+    #         return curr.fetchall()
+
+
 class TestSSHTransport:
+
     def test_connect_pass(self):
         with get_transport('SSH') as ssh:
             ssh.connect()
