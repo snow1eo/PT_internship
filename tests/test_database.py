@@ -9,7 +9,7 @@ from modules.database import CFG_NAME, DB_NAME, \
     check_config, init_database, add_control, get_controls
 
 TEST_DIR = '.test_tmp'
-REQUIRED_TABLES = {'control', 'scandata'}
+REQUIRED_TABLES = frozenset({'control', 'scandata'})
 TEST_NUM_PASS = 200   # any value for pass test
 TEST_NUM_ERR = 404    # any value, which doesn't exist in DB
 TEST_STATUS = 3       # any value for test

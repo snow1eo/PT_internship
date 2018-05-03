@@ -137,7 +137,7 @@ class SSHTransport:
         return data
 
 
-_AVAILABLE_TRANSPORTS = {'SSH', 'MySQL'}
+_AVAILABLE_TRANSPORTS = frozenset({'SSH', 'MySQL'})
 
 
 def get_transport(transport_name,
