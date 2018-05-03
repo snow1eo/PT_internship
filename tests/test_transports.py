@@ -1,13 +1,8 @@
-import os
-import sys
 from time import sleep
 
 import docker
 import pytest
 
-if os.getcwd().endswith('tests'):
-    os.chdir('..')
-sys.path.append(os.getcwd())
 from modules.transports import get_config, get_transport, SSHTransport, \
     MySQLTransport, TransportCreationError, AuthenticationError, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase

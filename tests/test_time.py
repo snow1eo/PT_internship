@@ -1,13 +1,7 @@
-import os
-import sys
-
 import pytest
 
-if os.getcwd().endswith('tests'):
-    os.chdir('..')
-sys.path.append(os.getcwd())
 from modules.time import set_start_time, get_start_time, \
-        set_finish_time, get_finish_time, get_duration
+    set_finish_time, get_finish_time, get_duration
 
 
 def test_start_time():

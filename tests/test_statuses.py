@@ -1,9 +1,3 @@
-import os
-import sys
-
-if os.getcwd().endswith('tests'):
-    os.chdir('..')
-sys.path.append(os.getcwd())
 from modules.statuses import get_status_name, Statuses
 
 

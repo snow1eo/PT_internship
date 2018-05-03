@@ -1,17 +1,12 @@
 import os
 import re
 import sqlite3
-import sys
 from shutil import rmtree, copytree
 
 import pytest
 
-if os.getcwd().endswith('tests'):
-    os.chdir('..')
-sys.path.append(os.getcwd())
-from modules.testing import run_tests, get_tests
 from modules.database import DB_NAME, init_database
-
+from modules.testing import run_tests, get_tests
 
 TEST_DIR = '.test_tmp'
 

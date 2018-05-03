@@ -1,17 +1,12 @@
 import json
 import os
 import sqlite3
-import sys
 from shutil import rmtree, copytree
 
 import pytest
 
-if os.getcwd().endswith('tests'):
-    os.chdir('..')
-sys.path.append(os.getcwd())
 from modules.database import CFG_NAME, DB_NAME, \
     check_config, init_database, add_control, get_controls
-
 
 TEST_DIR = '.test_tmp'
 REQUIRED_TABLES = {'control', 'scandata'}

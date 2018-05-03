@@ -1,16 +1,10 @@
 import importlib
-import os
-import sys
 from time import sleep
 
 import docker
 
-if os.getcwd().endswith('tests'):
-    os.chdir('..')
-sys.path.append(os.getcwd())
-from modules.transports import get_transport, get_config
 from modules.statuses import Statuses
-
+from modules.transports import get_transport, get_config
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
