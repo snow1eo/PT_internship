@@ -4,4 +4,4 @@ jinja2==2.10
 paramiko==2.4.1
 PyMySQL==0.8.0
 pytest==3.5.0
-weasyprint=0.42.3
+weasyprint==0.42.3

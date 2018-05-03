@@ -3,40 +3,42 @@ from time import sleep
 
 import docker
 
-from modules.statuses import Statuses
+from modules.statuses import Status
 from modules.transports import get_transport, get_config
+# Так корректно? Обычным импортом не удалось =(
+test0 = importlib.import_module('.000_test_file_exist', package='scripts')
+test1 = importlib.import_module('.001_test_db_exist', package='scripts')
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
-PORT_SSH = get_config()['transports']['SSH']['port']
 DOCKER_FILE_MARIADB = 'Dockerfile_mariadb'
-PORT_SQL = get_config()['transports']['MySQL']['port']
-ENV_SQL = get_config()['transports']['MySQL']['environment']
+port_ssh = get_config()['transports']['SSH']['port']
+port_sql = get_config()['transports']['MySQL']['port']
+env_sql = get_config()['transports']['MySQL']['environment']
 
 
-def setup_module():
+def setup_module():    
     client = docker.from_env()
     client.containers.prune()
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
     try:
         client.containers.run(image=images[0],
                               detach=True,
-                              ports={'22/tcp': PORT_SSH},
+                              ports={'22/tcp': port_ssh},
                               name='cont_ubuntu_sshd',
                               auto_remove=False)
     except Exception as e:
+        print(e)
         if str(e).startswith('409 Client Error: Conflict'):
             pass
         else:
             print(e)
-    # Есть pull, но он работает неадекватно - медленно,
-    # иногда падает и постоянно качает заново, кажется
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_MARIADB)
     try:
         client.containers.run(image=images[0],
                               detach=True,
-                              ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},
-                              environment=ENV_SQL,
+                              ports={'3306/tcp': ('127.0.0.1', port_sql)},
+                              environment=env_sql,
                               name='mariadb',
                               auto_remove=False)
     except Exception as e:
@@ -59,21 +61,17 @@ def teardown_module():
 
 def test_000_file_exist_1():
     with get_transport('SSH') as ssh:
-        ssh.connect()
         ssh.execute('touch /testfile')
-    mod = importlib.import_module('.000_test_file_exist', package='scripts')
-    assert mod.main() == Statuses.COMPLIANT.value
+    assert test0.main() == Status.COMPLIANT.value
 
 
 def test_000_file_exist_2():
     with get_transport('SSH') as ssh:
-        ssh.connect()
         try:
             ssh.execute('rm -f /testfile')
         except Exception:
             pass
-    mod = importlib.import_module('.000_test_file_exist', package='scripts')
-    assert mod.main() == Statuses.NOT_COMPLIANT.value
+    assert test0.main() == Status.NOT_COMPLIANT.value
 
 
 def test_000_file_exist_3():
@@ -82,31 +80,26 @@ def test_000_file_exist_3():
     for container in containers:
         if container.name == 'cont_ubuntu_sshd':
             container.stop()
-            mod = importlib.import_module('.000_test_file_exist', package='scripts')
-            status = mod.main()
+            status = test0.main()
             container.start()
-    assert status == Statuses.NOT_APPLICABLE.value
+    assert status == Status.NOT_APPLICABLE.value
 
 
 def test_001_database_exist_1():
     with get_transport('MySQL') as sql:
-        sql.connect()
         sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
         sql.close()
         sql.connect('test_db')
         sql.sqlexec("""CREATE TABLE IF NOT EXISTS test_table (
                     name VARCHAR(20), owner VARCHAR(20))""")
         sql.sqlexec("INSERT INTO test_table VALUES ('Dolly', 'Me')")
-    mod = importlib.import_module('.001_test_db_exist', package='scripts')
-    assert mod.main() == Statuses.COMPLIANT.value
+    assert test1.main() == Status.COMPLIANT.value
 
 
 def test_001_database_exist_2():
     with get_transport('MySQL') as sql:
-        sql.connect()
         sql.sqlexec('DROP DATABASE IF EXISTS test_db')
-    mod = importlib.import_module('.001_test_db_exist', package='scripts')
-    assert mod.main() == Statuses.NOT_COMPLIANT.value
+    assert test1.main() == Status.NOT_COMPLIANT.value
 
 
 def test_001_database_exist_3():
@@ -115,7 +108,6 @@ def test_001_database_exist_3():
     for container in containers:
         if container.name == 'mariadb':
             container.stop()
-            mod = importlib.import_module('.001_test_db_exist', package='scripts')
-            status = mod.main()
+            status = test1.main()
             container.start()
-    assert status == Statuses.NOT_APPLICABLE.value
+    assert status == Status.NOT_APPLICABLE.value

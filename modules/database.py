@@ -7,14 +7,6 @@ DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
 
 
-class DatabaseError(Exception):
-    pass
-
-
-class ForeignKeyError(DatabaseError):
-    pass
-
-
 class ConfigError(Exception):
     pass
 
@@ -35,8 +27,6 @@ def get_controls():
 
 
 def check_config():
-    if not os.path.exists(CFG_NAME):
-        raise ConfigError("{} doesn't exist".format(CFG_NAME))
     test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')
                  if re.match(r'\d+_.+\.py', test)]
     if len(test_nums) != len(set(test_nums)):
@@ -48,8 +38,6 @@ def check_config():
 
 def init_database():
     delete_database()
-    global _controls
-    _controls = None
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
@@ -70,6 +58,8 @@ def init_database():
 
 
 def delete_database():
+    global _controls
+    _controls = None
     if DB_NAME in os.listdir('./'):
         os.remove(DB_NAME)
 

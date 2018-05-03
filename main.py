@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
+
 from modules.database import check_config, init_database, delete_database
 from modules.reporting import generate_report
 from modules.testing import run_tests
-from modules.time import set_start_time, set_finish_time
+
 
 if __name__ == '__main__':
     check_config()
     init_database()
-    set_start_time()
+    start_time = datetime.now()
     run_tests()
-    set_finish_time()
-    generate_report('sample_report.pdf')
+    finish_time = datetime.now()
+    generate_report('sample_report.pdf', start_time, finish_time)
     delete_database()

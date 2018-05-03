@@ -4,25 +4,25 @@ import docker
 import pytest
 
 from modules.transports import get_config, get_transport, SSHTransport, \
-    MySQLTransport, TransportCreationError, AuthenticationError, \
+    MySQLTransport, TransportCreationError, UnknownTransport, AuthenticationError, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase
 
 PATH = 'tests'
 DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
-PORT_SSH = get_config()['transports']['SSH']['port']
 DOCKER_FILE_MARIADB = 'Dockerfile_mariadb'
-PORT_SQL = get_config()['transports']['MySQL']['port']
-ENV_SQL = get_config()['transports']['MySQL']['environment']
+port_ssh = get_config()['transports']['SSH']['port']
+port_sql = get_config()['transports']['MySQL']['port']
+env_sql = get_config()['transports']['MySQL']['environment']
 
 
-def setup_module():
+def setup_module():    
     client = docker.from_env()
     client.containers.prune()
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
     try:
         client.containers.run(image=images[0],
                               detach=True,
-                              ports={'22/tcp': PORT_SSH},
+                              ports={'22/tcp': port_ssh},
                               name='cont_ubuntu_sshd',
                               auto_remove=False)
     except Exception as e:
@@ -30,14 +30,12 @@ def setup_module():
             pass
         else:
             print(e)
-    # Есть pull, но он работает неадекватно - медленно,
-    # иногда падает и постоянно качает заново, кажется
     images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_MARIADB)
     try:
         client.containers.run(image=images[0],
                               detach=True,
-                              ports={'3306/tcp': ('127.0.0.1', PORT_SQL)},
-                              environment=ENV_SQL,
+                              ports={'3306/tcp': ('127.0.0.1', port_sql)},
+                              environment=env_sql,
                               name='mariadb',
                               auto_remove=False)
     except Exception as e:
@@ -59,7 +57,7 @@ def teardown_module():
 
 
 def test_get_ssh_transport_from_params_pass():
-    ssh = get_transport('SSH', 'localhost', PORT_SSH, 'root', 'pwd')
+    ssh = get_transport('SSH', 'localhost', port_ssh, 'root', 'pwd')
     assert isinstance(ssh, SSHTransport)
 
 
@@ -71,9 +69,9 @@ def test_get_ssh_transport_from_config_pass():
 def test_get_mysql_transport_from_params_pass():
     sql = get_transport(transport_name='MySQL',
                         host='localhost',
-                        port=PORT_SQL,
+                        port=port_sql,
                         login='root',
-                        password=ENV_SQL['MYSQL_ROOT_PASSWORD'])
+                        password=env_sql['MYSQL_ROOT_PASSWORD'])
     assert isinstance(sql, MySQLTransport)
 
 
@@ -83,43 +81,36 @@ def test_get_mysql_transport_from_config_pass():
 
 
 def test_get_transport_except():
-    with pytest.raises(TransportCreationError) as e_info:
+    with pytest.raises(UnknownTransport) as e_info:
         get_transport('noway')
-    assert str(e_info).endswith('UnknownTransport')
 
 
 class TestMySQLTransport:
-
     def test_connect_pass(self):
         with get_transport('MySQL') as sql:
-            sql.connect()
+            pass
 
     def test_connect_wrong_auth(self):
-        with get_transport('MySQL', password='wrong') as sql, \
-                        pytest.raises(AuthenticationError) as e_info:
-            sql.connect()
-        assert str(e_info).endswith('Authentication failed')
+        with pytest.raises(AuthenticationError) as e_info, \
+                        get_transport('MySQL', password='wrong') as sql:
+            pass
 
     def test_connect_wrong_host(self):
-        with get_transport('MySQL', port=666) as sql,\
-                        pytest.raises(TransportConnectionError) as e_info:
-            sql.connect()
-        assert str(e_info).endswith("Couldn't connect to host")
+        with pytest.raises(TransportConnectionError) as e_info, \
+                        get_transport('MySQL', port=666) as sql:
+            pass
 
     def test_connect_wrong_db(self):
-        with get_transport('MySQL') as sql,\
-                        pytest.raises(UnknownDatabase) as e_info:
+        with pytest.raises(UnknownDatabase) as e_info, \
+                        get_transport('MySQL') as sql:
             sql.connect('wrong_database')
-        assert str(e_info).endswith("Unknown database")
 
     def test_sqlexec_pass(self):
         with get_transport('MySQL') as sql:
-            sql.connect()
             sql.sqlexec('SHOW DATABASES')
 
     def test_sqlexec_request(self):
         with get_transport('MySQL') as sql:
-            sql.connect()
             sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
             sql.close()
             sql.connect('test_db')
@@ -132,45 +123,37 @@ class TestMySQLTransport:
     def test_sqlexec_wrong_request(self):
         with get_transport('MySQL') as sql, \
                         pytest.raises(MySQLError):
-            sql.connect()
             sql.sqlexec('WRONG REQUEST')
 
 
 class TestSSHTransport:
-
     def test_connect_pass(self):
         with get_transport('SSH') as ssh:
-            ssh.connect()
+            pass
 
     def test_connect_wrong_auth(self):
-        with get_transport('SSH', password='wrong') as ssh,\
-                        pytest.raises(AuthenticationError) as e_info:
-            ssh.connect()
-        assert str(e_info).endswith('Authentication failed')
+        with pytest.raises(AuthenticationError) as e_info, \
+                        get_transport('SSH', password='wrong') as ssh:
+            pass
 
     def test_connect_wrong_host(self):
-        with get_transport('SSH', port=666) as ssh,\
-                        pytest.raises(TransportConnectionError) as e_info:
-            ssh.connect()
-        assert str(e_info).endswith("Couldn't connect to host")
+        with pytest.raises(TransportConnectionError) as e_info, \
+                        get_transport('SSH', port=666) as ssh:
+            pass
 
     def test_execute_pass(self):
         with get_transport('SSH') as ssh:
-            ssh.connect()
             assert isinstance(ssh.execute('ls /'), tuple)
 
     def test_execute_except(self):
         with get_transport('SSH', login='testuser', password='pass') as ssh,\
                         pytest.raises(TransportError) as e_info:
-            ssh.connect()
             ssh.execute('wrong_command')
 
     def test_get_file_pass(self):
         with get_transport('SSH') as ssh:
-            ssh.connect()
             assert isinstance(ssh.get_file('/etc/passwd'), bytes)
 
     def test_get_file_except(self):
         with get_transport('SSH') as ssh, pytest.raises(TransportError):
-            ssh.connect()
             ssh.get_file('/wrong_file')

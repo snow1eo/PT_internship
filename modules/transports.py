@@ -21,6 +21,10 @@ class TransportCreationError(TransportError):
     pass
 
 
+class UnknownTransport(TransportCreationError):
+    pass
+
+
 class MySQLError(TransportError):
     pass
 
@@ -34,7 +38,6 @@ _config = None
 
 
 class MySQLTransport:
-
     def __init__(self, host, port, login, password):
         self.host = host
         self.port = port
@@ -42,14 +45,12 @@ class MySQLTransport:
         self.password = password
         self._conn = None
 
-    def __del__(self):
-        self.close()
-
     def __enter__(self):
+        self.connect()
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        pass
+        self.close()
 
     def connect(self, database=None):
         try:
@@ -63,12 +64,14 @@ class MySQLTransport:
                                          unix_socket=False)
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
-                raise AuthenticationError("Authentication failed")
+                raise AuthenticationError(
+                'login: {}, pass: {}'.format(self.login, self.password))
             elif "Can't connect to MySQL server" in str(e_info):
-                raise TransportConnectionError("Couldn't connect to host")
+                raise TransportConnectionError(
+                        "Couldn't connect to host {}:{}".format(self.host, self.port))
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
-                raise UnknownDatabase("Unknown database")
+                raise UnknownDatabase("Unknown database {}".format(database))
 
     def sqlexec(self, sql):
         with self._conn.cursor() as curr:
@@ -86,7 +89,6 @@ class MySQLTransport:
 
 
 class SSHTransport:
-
     def __init__(self, host, port, login, password):
         self.host = host
         self.port = port
@@ -95,14 +97,12 @@ class SSHTransport:
         self._conn = paramiko.SSHClient()
         self._conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    def __del__(self):
-        self.close()
-
     def __enter__(self):
+        self.connect()
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        pass
+        self.close()
 
     def connect(self):
         try:
@@ -111,9 +111,11 @@ class SSHTransport:
                                username=self.login,
                                password=self.password)
         except paramiko.ssh_exception.AuthenticationException:
-            raise AuthenticationError('Authentication failed')
+            raise AuthenticationError(
+                'login: {}, pass: {}'.format(self.login, self.password))
         except Exception:
-            raise TransportConnectionError("Couldn't connect to host")
+            raise TransportConnectionError(
+                        "Couldn't connect to host {}:{}".format(self.host, self.port))
 
     def close(self):
         self._conn.close()
@@ -144,7 +146,7 @@ def get_transport(transport_name,
                   login=None,
                   password=None):  # Нужно же передавать для MySQL?
     if transport_name not in _AVAILABLE_TRANSPORTS:
-        raise TransportCreationError('UnknownTransport')
+        raise UnknownTransport('UnknownTransport')
 
     if host is None or port is None or\
        login is None or password is None:
@@ -163,7 +165,7 @@ def get_transport(transport_name,
     elif transport_name == 'MySQL':
         return MySQLTransport(host, port, login, password)
     else:
-        raise TransportCreationError('UnknownTransport')
+        raise UnknownTransport('UnknownTransport')
 
 
 def get_config():

@@ -1,11 +1,11 @@
 import os
 from shutil import rmtree, copytree
+from datetime import datetime
 
 import pytest
 
 from modules.database import init_database
 from modules.reporting import TEMPLATE_HTML, render, get_context, generate_report
-from modules.time import set_start_time, set_finish_time
 
 TEST_DIR = '.test_tmp'
 
@@ -26,17 +26,15 @@ def teardown_module():
 
 @pytest.mark.first
 def test_get_context():
-    assert isinstance(get_context(), dict)
+    assert isinstance(get_context(datetime.now(), datetime.now()), dict)
 
 
 def test_render():
-    render(TEMPLATE_HTML, get_context())
+    render(TEMPLATE_HTML, get_context(datetime.now(), datetime.now()))
 
 
 def test_generate_report():
-    set_start_time()
-    set_finish_time()
-    generate_report('test.pdf')
+    generate_report('test.pdf', datetime.now(), datetime.now())
     if os.path.exists('test.pdf'):
         os.remove('test.pdf')
         assert True
