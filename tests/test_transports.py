@@ -51,7 +51,7 @@ def setup_module():
         else:
             print(e)
     client.containers.prune()
-    sleep(10)
+    sleep(15)  # waiting for start containers
 
 
 def teardown_module():
