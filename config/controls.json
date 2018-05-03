@@ -9,11 +9,11 @@
         }
     },
     "001": {
-        "title": "Database 'testdb' exist",
-        "descr": "Database 'testdb' exist on system and has not empty table test_table",
+        "title": "Database 'test_db' exist",
+        "descr": "Database 'test_db' exist on system and has not empty table test_table",
         "req": "Database exist",
         "env": {
-            "db_name": "testdb",
+            "db_name": "test_db",
             "table_name": "test_table"
         }
     }
