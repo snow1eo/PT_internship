@@ -19,8 +19,7 @@ def main():
                 else:
                     return Status.ERROR.value
             return Status.COMPLIANT.value
-    except TransportConnectionError as e_info:
-        if str(e_info).endswith("Couldn't connect to host"):
-            return Status.NOT_APPLICABLE.value
-        else:
-            return Status.ERROR.value
+    except TransportConnectionError:
+        return Status.NOT_APPLICABLE.value
+    except Exception:
+        return Status.ERROR.value
