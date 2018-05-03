@@ -15,11 +15,11 @@ def main():
                 ssh.get_file(os.path.join(env['path'], env['name']))
             except TransportError as err:
                 if str(err).endswith('File not found'):
-                    return Status.NOT_COMPLIANT.value
+                    return Status.NOT_COMPLIANT
                 else:
-                    return Status.ERROR.value
-            return Status.COMPLIANT.value
+                    return Status.ERROR
+            return Status.COMPLIANT
     except TransportConnectionError:
-        return Status.NOT_APPLICABLE.value
+        return Status.NOT_APPLICABLE
     except Exception:
-        return Status.ERROR.value
+        return Status.ERROR

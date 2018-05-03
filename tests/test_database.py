@@ -76,4 +76,3 @@ def test_add_control_foreign_key_err():
     init_database()
     with pytest.raises(sqlite3.IntegrityError) as e_info:
         add_control(TEST_NUM_ERR, TEST_STATUS)
-    assert e_info

@@ -164,8 +164,6 @@ def get_transport(transport_name,
         return SSHTransport(host, port, login, password)
     elif transport_name == 'MySQL':
         return MySQLTransport(host, port, login, password)
-    else:
-        raise UnknownTransport('UnknownTransport')
 
 
 def get_config():

@@ -4,54 +4,48 @@ import docker
 import pytest
 
 from modules.transports import get_config, get_transport, SSHTransport, \
-    MySQLTransport, TransportCreationError, UnknownTransport, AuthenticationError, \
-    TransportConnectionError, TransportError, MySQLError, UnknownDatabase
+    MySQLTransport, UnknownTransport, AuthenticationError, TransportConnectionError, TransportError, MySQLError, UnknownDatabase
 
 PATH = 'tests'
-DOCKER_FILE_UBUNTU = 'Dockerfile_ubuntu_sshd'
-DOCKER_FILE_MARIADB = 'Dockerfile_mariadb'
 port_ssh = get_config()['transports']['SSH']['port']
 port_sql = get_config()['transports']['MySQL']['port']
 env_sql = get_config()['transports']['MySQL']['environment']
+containers_env = {
+    'Dockerfile_ubuntu_sshd': {
+        'name': 'cont_ubuntu_sshd',
+        'ports': {'22/tcp': port_ssh}
+    },
+    'Dockerfile_mariadb': {
+        'name': 'mariadb',
+        'ports': {'3306/tcp': ('127.0.0.1', port_sql)},
+        'environment': env_sql
+    }
+}
 
 
 def setup_module():    
     client = docker.from_env()
     client.containers.prune()
-    images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_UBUNTU)
-    try:
-        client.containers.run(image=images[0],
-                              detach=True,
-                              ports={'22/tcp': port_ssh},
-                              name='cont_ubuntu_sshd',
-                              auto_remove=False)
-    except Exception as e:
-        if str(e).startswith('409 Client Error: Conflict'):
-            pass
-        else:
-            print(e)
-    images = client.images.build(path=PATH, dockerfile=DOCKER_FILE_MARIADB)
-    try:
-        client.containers.run(image=images[0],
-                              detach=True,
-                              ports={'3306/tcp': ('127.0.0.1', port_sql)},
-                              environment=env_sql,
-                              name='mariadb',
-                              auto_remove=False)
-    except Exception as e:
-        if str(e).startswith('409 Client Error: Conflict'):
-            pass
-        else:
-            print(e)
+    for dockerfile, container_env in containers_env.items():
+        images = client.images.build(path=PATH, dockerfile=dockerfile)
+        try:
+            client.containers.run(image=images[0],
+                                  detach=True,
+                                  **container_env)
+        except Exception as e:
+            if str(e).startswith('409 Client Error: Conflict'):
+                pass
+            else:
+                print(e)
     client.containers.prune()
     sleep(15)  # waiting for start containers
 
 
 def teardown_module():
     containers = docker.from_env().containers.list()
+    running_containers = {env['name'] for env in containers_env.values()}
     for container in containers:
-        if container.name == 'cont_ubuntu_sshd' or \
-           container.name == 'mariadb':
+        if container.name in running_containers:
             container.stop()
             container.remove()
 
@@ -81,29 +75,29 @@ def test_get_mysql_transport_from_config_pass():
 
 
 def test_get_transport_except():
-    with pytest.raises(UnknownTransport) as e_info:
+    with pytest.raises(UnknownTransport):
         get_transport('noway')
 
 
 class TestMySQLTransport:
     def test_connect_pass(self):
-        with get_transport('MySQL') as sql:
+        with get_transport('MySQL'):
             pass
 
     def test_connect_wrong_auth(self):
-        with pytest.raises(AuthenticationError) as e_info, \
-                        get_transport('MySQL', password='wrong') as sql:
-            pass
+        with pytest.raises(AuthenticationError):
+            with get_transport('MySQL', password='wrong'):
+                pass
 
     def test_connect_wrong_host(self):
-        with pytest.raises(TransportConnectionError) as e_info, \
-                        get_transport('MySQL', port=666) as sql:
-            pass
+        with pytest.raises(TransportConnectionError):
+             with get_transport('MySQL', port=666):
+                pass
 
     def test_connect_wrong_db(self):
-        with pytest.raises(UnknownDatabase) as e_info, \
-                        get_transport('MySQL') as sql:
-            sql.connect('wrong_database')
+        with pytest.raises(UnknownDatabase):
+            with get_transport('MySQL') as sql:
+                sql.connect('wrong_database')
 
     def test_sqlexec_pass(self):
         with get_transport('MySQL') as sql:
@@ -121,34 +115,34 @@ class TestMySQLTransport:
         assert data == [{'name': 'Dolly', 'owner': 'Me'}]
 
     def test_sqlexec_wrong_request(self):
-        with get_transport('MySQL') as sql, \
-                        pytest.raises(MySQLError):
-            sql.sqlexec('WRONG REQUEST')
+        with get_transport('MySQL') as sql:
+            with pytest.raises(MySQLError):
+                sql.sqlexec('WRONG REQUEST')
 
 
 class TestSSHTransport:
     def test_connect_pass(self):
-        with get_transport('SSH') as ssh:
+        with get_transport('SSH'):
             pass
 
     def test_connect_wrong_auth(self):
-        with pytest.raises(AuthenticationError) as e_info, \
-                        get_transport('SSH', password='wrong') as ssh:
-            pass
+        with pytest.raises(AuthenticationError):
+            with get_transport('SSH', password='wrong'):
+                pass
 
     def test_connect_wrong_host(self):
-        with pytest.raises(TransportConnectionError) as e_info, \
-                        get_transport('SSH', port=666) as ssh:
-            pass
+        with pytest.raises(TransportConnectionError):
+            with get_transport('SSH', port=666):
+                pass
 
     def test_execute_pass(self):
         with get_transport('SSH') as ssh:
             assert isinstance(ssh.execute('ls /'), tuple)
 
     def test_execute_except(self):
-        with get_transport('SSH', login='testuser', password='pass') as ssh,\
-                        pytest.raises(TransportError) as e_info:
-            ssh.execute('wrong_command')
+        with get_transport('SSH', login='testuser', password='pass') as ssh:
+            with pytest.raises(TransportError):
+                ssh.execute('wrong_command')
 
     def test_get_file_pass(self):
         with get_transport('SSH') as ssh:

@@ -24,5 +24,5 @@ def run_tests():
             status = test_mod.main()
         except Exception as e_info:
             print('ERROR: {}'.format(e_info))
-            status = Status.EXCEPTION.value
+            status = Status.EXCEPTION
         add_control(id_, status)

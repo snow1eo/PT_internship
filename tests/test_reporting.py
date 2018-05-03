@@ -35,8 +35,5 @@ def test_render():
 
 def test_generate_report():
     generate_report('test.pdf', datetime.now(), datetime.now())
-    if os.path.exists('test.pdf'):
-        os.remove('test.pdf')
-        assert True
-    else:
-        assert False
+    assert os.path.exists('test.pdf'):
+    os.remove('test.pdf')
