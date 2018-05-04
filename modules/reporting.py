@@ -1,13 +1,14 @@
 import os
 import sqlite3
 from collections import namedtuple, Counter
+from typing import NamedTuple
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML, CSS
 
 from modules.database import DB_NAME
 from modules.statuses import Status
-from modules.transports import get_config
+from modules.transports import get_transport_config
 
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
 CSS_FILE = os.path.join('templates', 'style.css')
@@ -23,18 +24,21 @@ def render(tpl_path, context):
 
 
 def get_context(start_time, finish_time):
-    env = get_config()
-
+    env = get_transport_config()
     duration = finish_time - start_time
 
+    class Control(NamedTuple):
+        ID = None
+        title = None
+        description = None
+        requirement = None
+        status = None
     Transport = namedtuple('Transport', 'name, password, login, port')
     transports = [Transport(name, param['password'], param['login'], param['port'])
                             for name, param in env['transports'].items()]
 
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        Control = namedtuple('Control',
-                             'ID, title, description, requirement, status')
         controls = [Control(ID, title, desc, requir, Status(code).name) for
                     ID, title, desc, requir, code in
                     curr.execute("""SELECT scandata.id, control.title,

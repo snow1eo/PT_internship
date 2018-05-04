@@ -2,12 +2,12 @@ from time import sleep
 
 import docker
 
-from modules.transports import get_config
+from modules.transports import get_transport_config
 
 PATH = 'tests'
-port_ssh = get_config()['transports']['SSH']['port']
-port_sql = get_config()['transports']['MySQL']['port']
-env_sql = get_config()['transports']['MySQL']['environment']
+port_ssh = get_transport_config()['transports']['SSH']['port']
+port_sql = get_transport_config()['transports']['MySQL']['port']
+env_sql = get_transport_config()['transports']['MySQL']['environment']
 containers_env = {
     'Dockerfile_ubuntu_sshd': {
         'name': 'cont_ubuntu_sshd',

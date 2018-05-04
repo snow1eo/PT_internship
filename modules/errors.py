@@ -30,11 +30,23 @@ class TransportCreationError(TransportError):
 
 
 class MySQLError(TransportError):
-    pass
+    def __init__(self, request):
+        self.request = request
+
+    def __str__(self):
+        return self.request
 
 
 class RemoteHostCommandError(TransportError):
     pass
+
+
+class SSHFileNotFound(TransportError):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def __str__(self):
+        return self.filename
 
 
 class AuthenticationError(TransportConnectionError):

@@ -2,15 +2,15 @@ from time import sleep
 
 import pytest
 
-from modules.errors import UnknownTransport, AuthenticationError, \
+from modules.errors import UnknownTransport, AuthenticationError, SSHFileNotFound, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase
-from modules.transports import get_transport, get_config, \
+from modules.transports import get_transport, get_transport_config, \
     SSHTransport, MySQLTransport
 
 PATH = 'tests'
-port_ssh = get_config()['transports']['SSH']['port']
-port_sql = get_config()['transports']['MySQL']['port']
-env_sql = get_config()['transports']['MySQL']['environment']
+port_ssh = get_transport_config()['transports']['SSH']['port']
+port_sql = get_transport_config()['transports']['MySQL']['port']
+env_sql = get_transport_config()['transports']['MySQL']['environment']
 
 
 # Тут такая беда, mariadb не успевает от одного теста 
@@ -130,5 +130,6 @@ class TestSSHTransport:
             assert isinstance(ssh.get_file('/etc/passwd'), bytes)
 
     def test_get_file_except(self):
-        with get_transport('SSH') as ssh, pytest.raises(TransportError):
-            ssh.get_file('/wrong_file')
+        with get_transport('SSH') as ssh:
+            with pytest.raises(SSHFileNotFound):
+                ssh.get_file('/wrong_file')

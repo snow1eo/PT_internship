@@ -6,24 +6,10 @@ import pymysql
 
 from modules.errors import TransportError, TransportConnectionError, \
     MySQLError, AuthenticationError, UnknownTransport, UnknownDatabase, \
-    RemoteHostCommandError
+    RemoteHostCommandError, SSHFileNotFound
 
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
-_AVAILABLE_TRANSPORTS = frozenset({'SSH', 'MySQL'})
-_connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
-""" Структура - что-то вроде
-_connections = {
-    'MySQL': [
-        `some_transport_instance`,
-        `another_transport_instance`}
-    ],
-    'SSH': [
-        ...
-        ...
-    ]
-}"""
-
 
 
 class MySQLTransport:
@@ -63,8 +49,6 @@ class MySQLTransport:
                                          charset='utf8',
                                          cursorclass=pymysql.cursors.DictCursor,
                                          unix_socket=False)
-        # Вот тут не знаю, как ещё определить ошибку
-        # Костыльно, но других по-другому не знаю
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
                 raise AuthenticationError(self.env['user'], self.env['password'])
@@ -95,7 +79,7 @@ class MySQLTransport:
             try:
                 curr.execute(sql)
             except Exception as e_info:
-                raise MySQLError(e_info)
+                raise MySQLError(sql)
         self.conn.commit()
         return curr.fetchall()
 
@@ -154,10 +138,8 @@ class SSHTransport:
         try:
             with sftp.open(filename) as f:
                 data = f.read()
-        # Если наследовать новый Exception для этого - будет выглядеть
-        # велосипедно. Может, тогда вообще не перехватывать этот?
         except FileNotFoundError:
-            raise TransportError('File not found')
+            raise SSHFileNotFound(filename)
         return data
 
 
@@ -173,33 +155,42 @@ def _get_connection(transport):
             return connected.conn
 
 
+_AVAILABLE_TRANSPORTS = {
+    'SSH': SSHTransport,
+    'MySQL': MySQLTransport
+    }
+_connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
+""" Структура - что-то вроде
+_connections = {
+    'MySQL': [
+        `some_transport_instance`,
+        `another_transport_instance`}
+    ],
+    'SSH': [
+        ...
+        ...
+    ]
+}"""
+
+
 def get_transport(transport_name,
                   host=None,
                   port=None,
                   login=None,
                   password=None):
-    if transport_name not in _AVAILABLE_TRANSPORTS:
+    if transport_name not in _AVAILABLE_TRANSPORTS.keys():
         raise UnknownTransport(transport_name)
 
-    if host is None or port is None or\
-       login is None or password is None:
-        conf = get_config()
-        if host is None:
-            host = conf['host']
-        if port is None:
-            port = conf['transports'][transport_name]['port']
-        if login is None:
-            login = conf['transports'][transport_name]['login']
-        if password is None:
-            password = conf['transports'][transport_name]['password']
+    config = get_transport_config()
+    host = host or config['host']
+    port = port or config['transports'][transport_name]['port']
+    login = login or config['transports'][transport_name]['login']
+    password = password or config['transports'][transport_name]['password']
 
-    if transport_name == 'SSH':
-        return SSHTransport(host, port, login, password)
-    elif transport_name == 'MySQL':
-        return MySQLTransport(host, port, login, password)
+    return _AVAILABLE_TRANSPORTS[transport_name](host, port, login, password)
 
 
-def get_config():
+def get_transport_config():
     global _config
     if not _config:
         with open(ENV_FILE) as f:
