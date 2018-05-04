@@ -3,7 +3,7 @@ import os
 import re
 import sqlite3
 
-from modules.errors import ConfigError, DuplicateTestNumError
+from modules.errors import ConfigError
 
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
@@ -32,9 +32,6 @@ def get_controls():
 def check_config():
     test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')
                  if re.match(r'\d+_.+\.py', test)]
-    duplicates = []
-    if len(test_nums) != len(set(test_nums)):
-        raise DuplicateTestNumError("duplicate test numbers in 'scripts'")
     cfg_nums = set(map(int, get_controls().keys()))
     if not set(test_nums).issubset(cfg_nums):
         raise ConfigError("{} doesn't match scripts".format(CFG_NAME))

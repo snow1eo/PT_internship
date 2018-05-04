@@ -5,6 +5,7 @@ import docker
 
 from modules.statuses import Status
 from modules.transports import get_transport
+import scripts  # for Windows
 
 # Оставлю так, не нравятся мне _ в файлах
 test0 = importlib.import_module('.000_test_file_exist', package='scripts')
