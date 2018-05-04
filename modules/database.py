@@ -34,7 +34,7 @@ def check_config():
                  if re.match(r'\d+_.+\.py', test)]
     cfg_nums = set(map(int, get_controls().keys()))
     if not set(test_nums).issubset(cfg_nums):
-        raise ConfigError("{} doesn't match scripts".format(CFG_NAME))
+        raise ConfigError(CFG_NAME)
 
 
 def init_database():
