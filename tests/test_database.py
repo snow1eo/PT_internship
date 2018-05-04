@@ -9,24 +9,10 @@ import pytest
 from modules.database import CFG_NAME, DB_NAME, check_config, \
     init_database, add_control, get_controls, get_tests
 
-TEST_DIR = '.test_tmp'
 REQUIRED_TABLES = frozenset({'control', 'scandata'})
 TEST_NUM_PASS = 200   # any value for pass test
 TEST_NUM_ERR = 404    # any value, which doesn't exist in DB
 TEST_STATUS = 3       # any value for test
-
-
-def setup_module():
-    if os.path.exists(TEST_DIR):
-        rmtree(TEST_DIR)
-    copytree('.', TEST_DIR)
-    os.chdir(TEST_DIR)
-
-
-def teardown_module():
-    os.chdir('..')
-    if os.path.exists(TEST_DIR):
-        rmtree(TEST_DIR)
 
 
 @pytest.mark.first
@@ -38,12 +24,11 @@ def test_get_tests():
 
 
 @pytest.mark.second
-def test_check_config():
-    # TODO (some time or other. Probably)
+def test_check_config(change_dir):
     check_config()
 
 
-def test_init_database():
+def test_init_database(change_dir):
     init_database()
     assert os.path.exists(DB_NAME)
     with sqlite3.connect(DB_NAME) as db:
@@ -62,7 +47,7 @@ def test_init_database():
         assert controls == required_controls
 
 
-def test_add_control_pass():
+def test_add_control_pass(change_dir):
     controls = {
             str(TEST_NUM_PASS): {
                 "title": "",
@@ -82,5 +67,5 @@ def test_add_control_pass():
 
 def test_add_control_foreign_key_err():
     init_database()
-    with pytest.raises(sqlite3.IntegrityError) as e_info:
+    with pytest.raises(sqlite3.IntegrityError):
         add_control(TEST_NUM_ERR, TEST_STATUS)

@@ -57,18 +57,15 @@ class MySQLTransport:
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
                 raise UnknownDatabase(database)
+        except Exception:
+            raise TransportConnectionError(self.env['host'], self.env['port'])
         if persistent:
             _connections[self.NAME].append(self)
         self.is_connected = True
 
-    # Вот эта тема мне тоже не сишком нравится
-    # Как можно более красиво хранить не открытую сессию?
     def close(self):
         if self.conn:
-            try:
-                self.conn.close()
-            except pymysql.err.Error:
-                pass
+            self.conn.close()
             self.conn = None
         if self.is_connected and self.persistent:
             _connections[self.NAME].remove(self)

@@ -1,5 +1,4 @@
 import importlib
-from time import sleep
 
 import docker
 
@@ -26,15 +25,8 @@ def test_000_file_exist_2():
     assert test0.main() == Status.NOT_COMPLIANT
 
 
-def test_000_file_exist_3():
-    status = None   # just for situation when container didn't start
-    containers = docker.from_env().containers.list()
-    for container in containers:
-        if container.name == 'cont_ubuntu_sshd':
-            container.stop()
-            status = test0.main()
-            container.start()
-    assert status == Status.NOT_APPLICABLE
+def test_000_file_exist_3(no_ssh_connections):
+    assert test0.main() == Status.NOT_APPLICABLE
 
 
 def test_001_database_exist_1():
@@ -54,12 +46,5 @@ def test_001_database_exist_2():
     assert test1.main() == Status.NOT_COMPLIANT
 
 
-def test_001_database_exist_3():
-    status = None   # just for situation when container didn't start
-    containers = docker.from_env().containers.list()
-    for container in containers:
-        if container.name == 'mariadb':
-            container.stop()
-            status = test1.main()
-            container.start()
-    assert status == Status.NOT_APPLICABLE
+def test_001_database_exist_3(no_mysql_connections):
+    assert test1.main() == Status.NOT_APPLICABLE
