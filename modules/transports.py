@@ -27,13 +27,17 @@ _connections = {
 
 
 class MySQLTransport:
+    NAME = 'MySQL'
+
     def __init__(self, host, port, login, password):
         self.env = dict(
             host=host,
             port=port,
             user=login,
             password=password)
-        self._conn = None
+        self.conn = None
+        self.is_connected = False
+        self.persistent = False
 
     # Тут точно ничего не нужно?
     # А если объект по какой-то причине будет удалён вне менеджера
@@ -50,8 +54,12 @@ class MySQLTransport:
 
     def connect(self, database=None, persistent=False):
         self.env.update(dict(database=database))
+        self.persistent = persistent
+        if persistent and self.is_connected:
+            self.conn = _get_connection(self)
+            return
         try:
-            self._conn = pymysql.connect(**self.env,
+            self.conn = pymysql.connect(**self.env,
                                          charset='utf8',
                                          cursorclass=pymysql.cursors.DictCursor,
                                          unix_socket=False)
@@ -66,39 +74,45 @@ class MySQLTransport:
             if "Unknown database" in str(e_info):
                 raise UnknownDatabase(database)
         if persistent:
-            _set_connection('MySQL', self.env, self._conn)
-
-    def sqlexec(self, sql):
-        with self._conn.cursor() as curr:
-            try:
-                curr.execute(sql)
-            except Exception as e_info:
-                raise MySQLError(e_info)
-        self._conn.commit()
-        return curr.fetchall()
+            _connections[self.NAME].append(self)
+        self.is_connected = True
 
     # Вот эта тема мне тоже не сишком нравится
     # Как можно более красиво хранить не открытую сессию?
     def close(self):
-        if self._conn:
+        if self.conn:
             try:
-                self._conn.close()
+                self.conn.close()
             except pymysql.err.Error:
                 pass
-            self._conn = None
-        if is_connected('MySQL', self.env):
-            _close_connection('MySQL', self.env, self._conn)
+            self.conn = None
+        if self.is_connected and self.persistent:
+            _connections[self.NAME].remove(self)
+            self.is_connected = False
+
+    def sqlexec(self, sql):
+        with self.conn.cursor() as curr:
+            try:
+                curr.execute(sql)
+            except Exception as e_info:
+                raise MySQLError(e_info)
+        self.conn.commit()
+        return curr.fetchall()
 
 
 class SSHTransport:
+    NAME = 'SSH'
+
     def __init__(self, host, port, login, password):
         self.env = dict(
             hostname=host,
             port=port,
             username=login,
             password=password)
-        self._conn = paramiko.SSHClient()
-        self._conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.conn = paramiko.SSHClient()
+        self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.is_connected = False
+        self.persistent = False
 
     def __enter__(self):
         self.connect()
@@ -108,29 +122,35 @@ class SSHTransport:
         self.close()
 
     def connect(self, persistent=False):
+        self.persistent = persistent
+        if persistent and self.is_connected:
+            self.conn = _get_connection(self)
+            return
         try:
-            self._conn.connect(**self.env)
+            self.conn.connect(**self.env)
         except paramiko.ssh_exception.AuthenticationException:
             raise AuthenticationError(self.env['username'], self.env['password'])
         except Exception:
             raise TransportConnectionError(self.env['hostname'], self.env['port'])
         if persistent:
-            _set_connection('SSH', self.env, self._conn)
+            _connections[self.NAME].append(self)
+            self.is_connected = True
 
     def close(self):
-        self._conn.close()
-        if is_connected('SSH', self.env):
-            _close_connection('SSH', self.env, self._conn)
+        self.conn.close()
+        if self.is_connected and self.persistent:
+            _connections[self.NAME].remove(self)
+        self.is_connected = False
 
     def execute(self, command):
-        stdin, stdout, stderr = self._conn.exec_command(command)
+        stdin, stdout, stderr = self.conn.exec_command(command)
         err = stderr.read()
         if err:
             raise RemoteHostCommandError(err)
         return stdin, stdout, stderr
 
     def get_file(self, filename):
-        sftp = self._conn.open_sftp()
+        sftp = self.conn.open_sftp()
         try:
             with sftp.open(filename) as f:
                 data = f.read()
@@ -141,35 +161,16 @@ class SSHTransport:
         return data
 
 
-# Отдельные функции - чтоб заменять было проще
-def _set_connection(transport, env, conn):
-    _connections[transport].append(dict(env=env, conn=conn))
-
-
-def _close_connection(transport, env, conn):
-    # как теперь закрыть-то это аккуратно?
-    # Соединения из переменной вычищаются, но не закрываются
-    if is_connected(transport, env):
-        try:
-            _connections[transport].remove(dict(env=env, conn=conn))
-        except ValueError:
-            pass
-
-
 def close_all_connections():
     # будет тогда же, когда напишу закрытие одного)
     pass
 
 
 # Выглядит костыльно, не знаю, как иначе
-def _get_connection(transport, env):
-    for conn in _connections[transport]:
-        if conn['env'] == env:
-            return conn['conn']
-
-
-def is_connected(transport, env):
-    return env in [conn['env'] for conn in _connections[transport]]
+def _get_connection(transport):
+    for connected in _connections[transport.NAME]:
+        if connected.env == transport.env:
+            return connected.conn
 
 
 def get_transport(transport_name,
