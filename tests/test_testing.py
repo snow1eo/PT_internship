@@ -23,8 +23,6 @@ def teardown_module():
     os.chdir('..')
     if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
-    # Вот здесь наиболее критично дать базе опомниться
-    sleep(3)
 
 
 def test_run_tests():

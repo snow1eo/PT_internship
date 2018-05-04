@@ -13,14 +13,6 @@ port_sql = get_transport_config()['transports']['MySQL']['port']
 env_sql = get_transport_config()['transports']['MySQL']['environment']
 
 
-# Тут такая беда, mariadb не успевает от одного теста 
-# оправиться и начинает следующий, где соединения падают
-# Может, имеет смысл сделать несколько попыток подключения
-# с таймаутом вместо этого костыля?
-def teardown_module():
-    sleep(3)
-
-
 def test_get_ssh_transport_from_params_pass():
     ssh = get_transport('SSH', 'localhost', port_ssh, 'root', 'pwd')
     assert isinstance(ssh, SSHTransport)

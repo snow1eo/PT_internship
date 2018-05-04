@@ -7,17 +7,8 @@ from modules.statuses import Status
 from modules.transports import get_transport
 import scripts  # for Windows
 
-# Оставлю так, не нравятся мне _ в файлах
 test0 = importlib.import_module('.000_test_file_exist', package='scripts')
 test1 = importlib.import_module('.001_test_db_exist', package='scripts')
-
-
-# Тут такая беда, mariadb не успевает от одного теста 
-# оправиться и начинает следующий, где соединения падают
-# Может, имеет смысл сделать несколько попыток подключения
-# с таймаутом вместо этого костыля?
-def teardown_module():
-    sleep(3)
 
 
 def test_000_file_exist_1():
