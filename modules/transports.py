@@ -15,8 +15,8 @@ _connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
 """ Структура - что-то вроде
 _connections = {
     'MySQL': [
-        {'conn': `some_conn_instance`, 'env': `conn environment`},
-        {'conn': `another_conn_instance`, 'env': `conn environment`}
+        `some_transport_instance`,
+        `another_transport_instance`}
     ],
     'SSH': [
         ...
@@ -162,7 +162,7 @@ class SSHTransport:
 
 
 def close_all_connections():
-    # будет тогда же, когда напишу закрытие одного)
+    # TODO
     pass
 
 
