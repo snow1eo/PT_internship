@@ -2,7 +2,8 @@ import os
 
 from modules.database import get_controls
 from modules.statuses import Status
-from modules.transports import get_transport, TransportConnectionError, SSHFileNotFound
+from modules.transports import get_transport
+from modules.errors import TransportConnectionError, SSHFileNotFound
 
 
 def main():

@@ -4,8 +4,8 @@ import os.path
 import paramiko
 import pymysql
 
-from modules.errors import TransportError, TransportConnectionError, \
-    MySQLError, AuthenticationError, UnknownTransport, UnknownDatabase, \
+from modules.errors import TransportConnectionError, MySQLError, \
+    AuthenticationError, UnknownTransport, UnknownDatabase, \
     RemoteHostCommandError, SSHFileNotFound
 
 ENV_FILE = os.path.join('config', 'env.json')
@@ -25,11 +25,8 @@ class MySQLTransport:
         self.is_connected = False
         self.persistent = False
 
-    # Тут точно ничего не нужно?
-    # А если объект по какой-то причине будет удалён вне менеджера
-    # контекста, соединение же всё равно закрыть нужно?
     def __del__(self):
-        pass
+        self.close()
 
     def __enter__(self):
         self.connect()
@@ -46,9 +43,9 @@ class MySQLTransport:
             return
         try:
             self.conn = pymysql.connect(**self.env,
-                                         charset='utf8',
-                                         cursorclass=pymysql.cursors.DictCursor,
-                                         unix_socket=False)
+                                        charset='utf8',
+                                        cursorclass=pymysql.cursors.DictCursor,
+                                        unix_socket=False)
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
                 raise AuthenticationError(self.env['user'], self.env['password'])
@@ -157,17 +154,6 @@ _AVAILABLE_TRANSPORTS = {
     'MySQL': MySQLTransport
     }
 _connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
-""" Структура - что-то вроде
-_connections = {
-    'MySQL': [
-        `some_transport_instance`,
-        `another_transport_instance`}
-    ],
-    'SSH': [
-        ...
-        ...
-    ]
-}"""
 
 
 def get_transport(transport_name,

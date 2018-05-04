@@ -68,6 +68,7 @@ def change_dir(request):
         rmtree(TEST_DIR)
     copytree('.', TEST_DIR)
     os.chdir(TEST_DIR)
+
     def clean():
         os.chdir('..')
         if os.path.exists(TEST_DIR):

@@ -2,7 +2,6 @@ import json
 import os
 import re
 import sqlite3
-from shutil import rmtree, copytree
 
 import pytest
 

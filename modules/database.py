@@ -50,7 +50,7 @@ def init_database():
         controls = get_controls()
         for id_, params in controls.items():
             curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)",
-                    (id_, params['title'], params['descr'], params['req']))
+                         (id_, params['title'], params['descr'], params['req']))
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
                     id INTEGER PRIMARY KEY,
                     ctrl_id INTEGER NOT NULL,
@@ -70,4 +70,4 @@ def add_control(ctrl_id, status):
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
         curr.execute("INSERT INTO scandata VALUES (NULL, ?, ?)",
-            (ctrl_id, status))
+                     (ctrl_id, status))

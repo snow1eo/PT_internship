@@ -1,7 +1,5 @@
 import importlib
 
-import docker
-
 from modules.statuses import Status
 from modules.transports import get_transport
 import scripts  # for Windows

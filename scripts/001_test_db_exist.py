@@ -1,6 +1,7 @@
 from modules.database import get_controls
 from modules.statuses import Status
-from modules.transports import get_transport, TransportConnectionError
+from modules.transports import get_transport
+from modules.errors import TransportConnectionError, MySQLError
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
                 if sql.sqlexec('''SELECT * FROM {table_name}'''.format(**env)):
                         return Status.COMPLIANT
                 return Status.NOT_COMPLIANT
-            except MySQLError as err:
+            except MySQLError:
                 return Status.ERROR
     except TransportConnectionError:
         return Status.NOT_APPLICABLE

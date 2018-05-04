@@ -1,5 +1,4 @@
 import os
-from shutil import rmtree, copytree
 from datetime import datetime
 
 import pytest
