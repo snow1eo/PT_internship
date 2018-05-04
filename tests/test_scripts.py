@@ -4,53 +4,18 @@ from time import sleep
 import docker
 
 from modules.statuses import Status
-from modules.transports import get_transport, get_config
+from modules.transports import get_transport
 # Оставлю так, не нравятся мне _ в файлах
 test0 = importlib.import_module('.000_test_file_exist', package='scripts')
 test1 = importlib.import_module('.001_test_db_exist', package='scripts')
 
-PATH = 'tests'
-port_ssh = get_config()['transports']['SSH']['port']
-port_sql = get_config()['transports']['MySQL']['port']
-env_sql = get_config()['transports']['MySQL']['environment']
-containers_env = {
-    'Dockerfile_ubuntu_sshd': {
-        'name': 'cont_ubuntu_sshd',
-        'ports': {'22/tcp': port_ssh}
-    },
-    'Dockerfile_mariadb': {
-        'name': 'mariadb',
-        'ports': {'3306/tcp': ('127.0.0.1', port_sql)},
-        'environment': env_sql
-    }
-}
 
-
-def setup_module():    
-    client = docker.from_env()
-    client.containers.prune()
-    for dockerfile, container_env in containers_env.items():
-        images = client.images.build(path=PATH, dockerfile=dockerfile)
-        try:
-            client.containers.run(image=images[0],
-                                  detach=True,
-                                  **container_env)
-        except Exception as e:
-            if str(e).startswith('409 Client Error: Conflict'):
-                pass
-            else:
-                print(e)
-    client.containers.prune()
-    sleep(15)  # waiting for start containers
-
-
+# Тут такая беда, mariadb не успевает от одного теста 
+# оправиться и начинает следующий, где соединения падают
+# Может, имеет смысл сделать несколько попыток подключения
+# с таймаутом вместо этого костыля?
 def teardown_module():
-    containers = docker.from_env().containers.list()
-    running_containers = {env['name'] for env in containers_env.values()}
-    for container in containers:
-        if container.name in running_containers:
-            container.stop()
-            container.remove()
+    sleep(3)
 
 
 def test_000_file_exist_1():

@@ -45,6 +45,12 @@ class MySQLTransport:
         self.password = password
         self._conn = None
 
+    # Тут точно ничего не нужно?
+    # А если объект по какой-то причине будет удалён вне менеджера
+    # контекста, соединение же всё равно закрыть нужно?
+    def __del__(self):
+        pass
+
     def __enter__(self):
         self.connect()
         return self
@@ -82,10 +88,13 @@ class MySQLTransport:
         self._conn.commit()
         return curr.fetchall()
 
+    # Вот эта тема мне тоже не сишком нравится
+    # Как можно более красиво хранить не открытую
+    # сессию?
     def close(self):
         if self._conn:
-            self._conn.commit()
             self._conn.close()
+            self.__conn = None
 
 
 class SSHTransport:

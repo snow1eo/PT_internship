@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from modules.database import get_controls
 from modules.statuses import Status
 from modules.transports import get_transport, TransportConnectionError

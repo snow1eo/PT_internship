@@ -2,6 +2,7 @@ import os
 import re
 import sqlite3
 from shutil import rmtree, copytree
+from time import sleep
 
 import pytest
 
@@ -23,7 +24,8 @@ def teardown_module():
     os.chdir('..')
     if TEST_DIR in os.listdir():
         rmtree(TEST_DIR)
-
+    # Вот здесь наиболее критично дать базе опомниться
+    sleep(3)
 
 @pytest.mark.first
 def test_get_tests():
