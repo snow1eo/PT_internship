@@ -52,7 +52,7 @@ class MySQLTransport:
                 raise TransportConnectionError(self.host, self.port)
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
-                raise UnknownDatabase("Unknown database {}".format(database))
+                raise UnknownDatabase(database)
 
     def sqlexec(self, sql):
         with self._conn.cursor() as curr:
