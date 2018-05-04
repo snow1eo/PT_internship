@@ -1,5 +1,4 @@
 import os
-import re
 import sqlite3
 from shutil import rmtree, copytree
 from time import sleep
@@ -13,7 +12,7 @@ TEST_DIR = '.test_tmp'
 
 
 def setup_module():
-    if TEST_DIR in os.listdir():
+    if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
     copytree('.', TEST_DIR)
     os.chdir(TEST_DIR)
@@ -22,18 +21,10 @@ def setup_module():
 
 def teardown_module():
     os.chdir('..')
-    if TEST_DIR in os.listdir():
+    if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
     # Вот здесь наиболее критично дать базе опомниться
     sleep(3)
-
-
-@pytest.mark.first
-def test_get_tests():
-    tests = get_tests()
-    assert isinstance(tests, dict)
-    assert len(tests) == len([t for t in os.listdir('scripts') if \
-                              re.match(r'\d+_.+\.py', t)])
 
 
 def test_run_tests():

@@ -1,12 +1,13 @@
 import json
 import os
+import re
 import sqlite3
 from shutil import rmtree, copytree
 
 import pytest
 
-from modules.database import CFG_NAME, DB_NAME, \
-    check_config, init_database, add_control, get_controls
+from modules.database import CFG_NAME, DB_NAME, check_config, \
+    init_database, add_control, get_controls, get_tests
 
 TEST_DIR = '.test_tmp'
 REQUIRED_TABLES = frozenset({'control', 'scandata'})
@@ -16,7 +17,7 @@ TEST_STATUS = 3       # any value for test
 
 
 def setup_module():
-    if TEST_DIR in os.listdir():
+    if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
     copytree('.', TEST_DIR)
     os.chdir(TEST_DIR)
@@ -24,20 +25,27 @@ def setup_module():
 
 def teardown_module():
     os.chdir('..')
-    if TEST_DIR in os.listdir():
+    if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
 
 
 @pytest.mark.first
+def test_get_tests():
+    tests = get_tests()
+    assert isinstance(tests, dict)
+    assert len(tests) == len([t for t in os.listdir('scripts') if
+                              re.match(r'\d+_.+\.py', t)])
+
+
+@pytest.mark.second
 def test_check_config():
     # TODO (some time or other. Probably)
     check_config()
 
 
-@pytest.mark.second
 def test_init_database():
     init_database()
-    assert DB_NAME in os.listdir()
+    assert os.path.exists(DB_NAME)
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("SELECT name FROM sqlite_master where type = 'table'")

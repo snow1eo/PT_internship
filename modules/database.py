@@ -12,6 +12,15 @@ CFG_NAME = os.path.join('config', 'controls.json')
 _controls = None
 
 
+def get_tests():
+    check_config()
+    return {
+                re.findall(r'\d+', test)[0]: test.strip('.py')
+                for test in os.listdir('scripts')
+                if re.match(r'\d+_.+\.py', test)
+           }
+
+
 def get_controls():
     global _controls
     if not _controls:
@@ -23,6 +32,7 @@ def get_controls():
 def check_config():
     test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')
                  if re.match(r'\d+_.+\.py', test)]
+    duplicates = []
     if len(test_nums) != len(set(test_nums)):
         raise DuplicateTestNumError("duplicate test numbers in 'scripts'")
     cfg_nums = set(map(int, get_controls().keys()))
@@ -54,7 +64,7 @@ def init_database():
 def delete_database():
     global _controls
     _controls = None
-    if DB_NAME in os.listdir('./'):
+    if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
 
 

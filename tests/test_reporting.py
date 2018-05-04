@@ -11,7 +11,7 @@ TEST_DIR = '.test_tmp'
 
 
 def setup_module():
-    if TEST_DIR in os.listdir():
+    if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
     copytree('.', TEST_DIR)
     os.chdir(TEST_DIR)
@@ -20,7 +20,7 @@ def setup_module():
 
 def teardown_module():
     os.chdir('..')
-    if TEST_DIR in os.listdir():
+    if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
 
 

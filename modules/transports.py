@@ -5,7 +5,8 @@ import paramiko
 import pymysql
 
 from modules.errors import TransportError, TransportConnectionError, \
-    MySQLError, AuthenticationError, UnknownTransport, UnknownDatabase
+    MySQLError, AuthenticationError, UnknownTransport, UnknownDatabase, \
+    RemoteHostCommandError
 
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
@@ -104,7 +105,7 @@ class SSHTransport:
         stdin, stdout, stderr = self._conn.exec_command(command)
         err = stderr.read()
         if err:
-            raise TransportError(err)
+            raise RemoteHostCommandError(err)
         return stdin, stdout, stderr
 
     def get_file(self, filename):
