@@ -55,6 +55,11 @@ class TestMySQLTransport:
         with get_transport('MySQL'):
             pass
 
+    def test_persistent_connection(self):
+        sql = get_transport('MySQL')
+        assert sql.connect(persistent=True) is sql.connect(persistent=True)
+        sql.close()
+
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
             with get_transport('MySQL', password='wrong'):
@@ -95,6 +100,11 @@ class TestSSHTransport:
     def test_connect_pass(self):
         with get_transport('SSH'):
             pass
+
+    def test_persistent_connection(self):
+        ssh = get_transport('SSH')
+        assert ssh.connect(persistent=True) is ssh.connect(persistent=True)
+        ssh.close()
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):

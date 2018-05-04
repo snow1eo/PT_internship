@@ -6,7 +6,7 @@ class ConfigError(Exception):
         self.cfg_name = cfg_name
 
     def __str__(self):
-        return "{} doesn't match scripts".format(cfg_name)
+        return "{} doesn't match scripts".format(self.cfg_name)
 
 
 # Transport Errors
