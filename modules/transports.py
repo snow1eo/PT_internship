@@ -4,33 +4,9 @@ import os.path
 import paramiko
 import pymysql
 
-
-class TransportError(Exception):
-    pass
-
-
-class TransportConnectionError(TransportError):
-    pass
-
-
-class AuthenticationError(TransportConnectionError):
-    pass
-
-
-class TransportCreationError(TransportError):
-    pass
-
-
-class UnknownTransport(TransportCreationError):
-    pass
-
-
-class MySQLError(TransportError):
-    pass
-
-
-class UnknownDatabase(TransportConnectionError):
-    pass
+from modules.errors import TransportError, TransportConnectionError, \
+    TransportCreationError, MySQLError, AuthenticationError, \
+    UnknownTransport, UnknownDatabase
 
 
 ENV_FILE = os.path.join('config', 'env.json')
@@ -153,7 +129,7 @@ def get_transport(transport_name,
                   host=None,
                   port=None,
                   login=None,
-                  password=None):  # Нужно же передавать для MySQL?
+                  password=None):
     if transport_name not in _AVAILABLE_TRANSPORTS:
         raise UnknownTransport('UnknownTransport')
 

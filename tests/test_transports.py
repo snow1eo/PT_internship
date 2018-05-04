@@ -3,9 +3,9 @@ from time import sleep
 import pytest
 
 from modules.transports import get_transport, get_config, \
-    SSHTransport, MySQLTransport,\
-    UnknownTransport, AuthenticationError, TransportConnectionError,\
-    TransportError, MySQLError, UnknownDatabase
+    SSHTransport, MySQLTransport
+from modules.errors import UnknownTransport, AuthenticationError, \
+    TransportConnectionError, TransportError, MySQLError, UnknownDatabase
 
 
 PATH = 'tests'

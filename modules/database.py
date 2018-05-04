@@ -3,16 +3,10 @@ import os
 import re
 import sqlite3
 
+from modules.errors import ConfigError, DuplicateTestNumError
+
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
-
-
-class ConfigError(Exception):
-    pass
-
-
-class DuplicateTestNumError(ConfigError):
-    pass
 
 
 _controls = None
