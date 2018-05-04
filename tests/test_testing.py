@@ -27,12 +27,14 @@ def teardown_module():
     # Вот здесь наиболее критично дать базе опомниться
     sleep(3)
 
+
 @pytest.mark.first
 def test_get_tests():
     tests = get_tests()
     assert isinstance(tests, dict)
     assert len(tests) == len([t for t in os.listdir('scripts') if \
                               re.match(r'\d+_.+\.py', t)])
+
 
 def test_run_tests():
     total_tests = len(get_tests())

@@ -6,7 +6,6 @@ from modules.database import check_config, init_database, delete_database
 from modules.reporting import generate_report
 from modules.testing import run_tests
 
-
 if __name__ == '__main__':
     check_config()
     init_database()

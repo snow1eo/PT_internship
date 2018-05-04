@@ -5,6 +5,7 @@ import docker
 
 from modules.statuses import Status
 from modules.transports import get_transport
+
 # Оставлю так, не нравятся мне _ в файлах
 test0 = importlib.import_module('.000_test_file_exist', package='scripts')
 test1 = importlib.import_module('.001_test_db_exist', package='scripts')

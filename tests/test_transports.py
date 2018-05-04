@@ -2,11 +2,10 @@ from time import sleep
 
 import pytest
 
-from modules.transports import get_transport, get_config, \
-    SSHTransport, MySQLTransport
 from modules.errors import UnknownTransport, AuthenticationError, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase
-
+from modules.transports import get_transport, get_config, \
+    SSHTransport, MySQLTransport
 
 PATH = 'tests'
 port_ssh = get_config()['transports']['SSH']['port']

@@ -1,7 +1,6 @@
 import os
 import sqlite3
 from collections import namedtuple, Counter
-from datetime import datetime
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML, CSS

@@ -5,9 +5,7 @@ import paramiko
 import pymysql
 
 from modules.errors import TransportError, TransportConnectionError, \
-    TransportCreationError, MySQLError, AuthenticationError, \
-    UnknownTransport, UnknownDatabase
-
+    MySQLError, AuthenticationError, UnknownTransport, UnknownDatabase
 
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
@@ -44,13 +42,13 @@ class MySQLTransport:
                                          charset='utf8',
                                          cursorclass=pymysql.cursors.DictCursor,
                                          unix_socket=False)
+        # Вот тут не знаю, как ещё определить ошибку
+        # Костыльно, но других по-другому не знаю
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
-                raise AuthenticationError(
-                'login: {}, pass: {}'.format(self.login, self.password))
+                raise AuthenticationError(self.login, self.password)
             elif "Can't connect to MySQL server" in str(e_info):
-                raise TransportConnectionError(
-                        "Couldn't connect to host {}:{}".format(self.host, self.port))
+                raise TransportConnectionError(self.host, self.port)
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
                 raise UnknownDatabase("Unknown database {}".format(database))
@@ -65,12 +63,11 @@ class MySQLTransport:
         return curr.fetchall()
 
     # Вот эта тема мне тоже не сишком нравится
-    # Как можно более красиво хранить не открытую
-    # сессию?
+    # Как можно более красиво хранить не открытую сессию?
     def close(self):
         if self._conn:
             self._conn.close()
-            self.__conn = None
+            self._conn = None
 
 
 class SSHTransport:
@@ -96,11 +93,9 @@ class SSHTransport:
                                username=self.login,
                                password=self.password)
         except paramiko.ssh_exception.AuthenticationException:
-            raise AuthenticationError(
-                'login: {}, pass: {}'.format(self.login, self.password))
+            raise AuthenticationError(self.login, self.password)
         except Exception:
-            raise TransportConnectionError(
-                        "Couldn't connect to host {}:{}".format(self.host, self.port))
+            raise TransportConnectionError(self.host, self.port)
 
     def close(self):
         self._conn.close()
@@ -112,11 +107,13 @@ class SSHTransport:
             raise TransportError(err)
         return stdin, stdout, stderr
 
-    def get_file(self, path):
+    def get_file(self, filename):
         sftp = self._conn.open_sftp()
         try:
-            with sftp.open(path) as f:
+            with sftp.open(filename) as f:
                 data = f.read()
+        # Если наследовать новый Exception для этого - будет выглядеть
+        # велосипедно. Может, тогда вообще не перехватывать этот?
         except FileNotFoundError:
             raise TransportError('File not found')
         return data
@@ -131,7 +128,7 @@ def get_transport(transport_name,
                   login=None,
                   password=None):
     if transport_name not in _AVAILABLE_TRANSPORTS:
-        raise UnknownTransport('UnknownTransport')
+        raise UnknownTransport(transport_name)
 
     if host is None or port is None or\
        login is None or password is None:
