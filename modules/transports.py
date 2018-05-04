@@ -10,14 +10,29 @@ from modules.errors import TransportError, TransportConnectionError, \
 
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
+_AVAILABLE_TRANSPORTS = frozenset({'SSH', 'MySQL'})
+_connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
+""" Структура - что-то вроде
+_connections = {
+    'MySQL': [
+        {'conn': `some_conn_instance`, 'env': `conn environment`},
+        {'conn': `another_conn_instance`, 'env': `conn environment`}
+    ],
+    'SSH': [
+        ...
+        ...
+    ]
+}"""
+
 
 
 class MySQLTransport:
     def __init__(self, host, port, login, password):
-        self.host = host
-        self.port = port
-        self.login = login
-        self.password = password
+        self.env = dict(
+            host=host,
+            port=port,
+            user=login,
+            password=password)
         self._conn = None
 
     # Тут точно ничего не нужно?
@@ -33,13 +48,13 @@ class MySQLTransport:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-    def connect(self, database=None):
+    def connect(self, database=None, persistant=False):
+        self.env.update(dict(database=database))
+        if is_connected('MySQL', self.env):
+            self._conn = _get_connection('MySQL', self.env)
+            return
         try:
-            self._conn = pymysql.connect(host=self.host,
-                                         port=self.port,
-                                         user=self.login,
-                                         password=self.password,
-                                         db=database,
+            self._conn = pymysql.connect(**self.env,
                                          charset='utf8',
                                          cursorclass=pymysql.cursors.DictCursor,
                                          unix_socket=False)
@@ -47,12 +62,14 @@ class MySQLTransport:
         # Костыльно, но других по-другому не знаю
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
-                raise AuthenticationError(self.login, self.password)
+                raise AuthenticationError(self.env['user'], self.env['password'])
             elif "Can't connect to MySQL server" in str(e_info):
-                raise TransportConnectionError(self.host, self.port)
+                raise TransportConnectionError(self.env['host'], self.env['port'])
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
-                raise UnknownDatabase("Unknown database {}".format(database))
+                raise UnknownDatabase(self.env['database'])
+        if persistant:
+            _set_connection('MySQL', self.env, self._conn)
 
     def sqlexec(self, sql):
         with self._conn.cursor() as curr:
@@ -65,18 +82,21 @@ class MySQLTransport:
 
     # Вот эта тема мне тоже не сишком нравится
     # Как можно более красиво хранить не открытую сессию?
-    def close(self):
+    def close(self, persistant=False):
         if self._conn:
             self._conn.close()
             self._conn = None
+        if persistant and self.is_connected():
+            _reset_connection('SSH', self.env, self._conn)
 
 
 class SSHTransport:
     def __init__(self, host, port, login, password):
-        self.host = host
-        self.port = port
-        self.login = login
-        self.password = password
+        self.env = dict(
+            hostname=host,
+            port=port,
+            username=login,
+            password=password)
         self._conn = paramiko.SSHClient()
         self._conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -87,19 +107,23 @@ class SSHTransport:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-    def connect(self):
+    def connect(self, persistant=False):
+        if is_connected('SSH', self.env):
+            self._conn = _get_connection('SSH', self.env)
+            return
         try:
-            self._conn.connect(hostname=self.host,
-                               port=self.port,
-                               username=self.login,
-                               password=self.password)
+            self._conn.connect(**self.env)
         except paramiko.ssh_exception.AuthenticationException:
-            raise AuthenticationError(self.login, self.password)
+            raise AuthenticationError(self.env['username'], self.env['password'])
         except Exception:
-            raise TransportConnectionError(self.host, self.port)
+            raise TransportConnectionError(self.env['hostname'], self.env['port'])
+        if persistant:
+            _set_connection('SSH', self.env, self._conn)
 
-    def close(self):
+    def close(self, persistant=False):
         self._conn.close()
+        if persistant and self.is_connected():
+            _reset_connection('SSH', self.env, self._conn)
 
     def execute(self, command):
         stdin, stdout, stderr = self._conn.exec_command(command)
@@ -120,7 +144,24 @@ class SSHTransport:
         return data
 
 
-_AVAILABLE_TRANSPORTS = frozenset({'SSH', 'MySQL'})
+# Отдельные функции - чтоб заменять было проще
+def _set_connection(transport, env, conn):
+    _connections[transport].append(dict(env=env, conn=conn))
+
+
+def _reset_connection(transport, env, conn):
+    _connections[transport].remove(dict(env=env, conn=conn))
+
+
+# Выглядит костыльно, не знаю, как иначе
+def _get_connection(transport, env):
+    for conn in _connections[transport]:
+        if conn['env'] == env:
+            return conn['conn']
+
+
+def is_connected(transport, env):
+    return env in [conn['env'] for conn in _connections[transport]]
 
 
 def get_transport(transport_name,
