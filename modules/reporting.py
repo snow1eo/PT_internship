@@ -25,12 +25,10 @@ def render(tpl_path, context):
 
 def get_context():
     env = get_transport_config()
-
     Control = namedtuple('Control', 'ID, title, description, requirement, status')
     Transport = namedtuple('Transport', 'name, password, login, port')
     transports = [Transport(name, param['password'], param['login'], param['port'])
                   for name, param in env['transports'].items()]
-
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
@@ -45,11 +43,9 @@ def get_context():
                 lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f"),
                 curr.execute("""SELECT start, finish FROM
                     scanning WHERE id = ?""", (scan_id,)).fetchone())
-
     statuses_count = {Status(code).name: 0 for code in range(1, 6)}
     statuses_count.update(dict(Counter([control.status for control in controls])))
-
-    context = dict(
+    return dict(
         host=env['host'],
         transports=transports,
         start_time=start_time.strftime(TIME_FORMAT),
@@ -58,7 +54,6 @@ def get_context():
         total_controls=len(controls),
         controls=controls,
         statuses=statuses_count)
-    return context
 
 
 def generate_report(report_name):
