@@ -34,6 +34,7 @@ def pytest_sessionstart(session):
         try:
             client.containers.run(image=images[0],
                                   detach=True,
+                                  auto_remove=True,
                                   **container_env)
         except Exception as e:
             if str(e).startswith('409 Client Error: Conflict'):
@@ -51,7 +52,6 @@ def pytest_sessionfinish(session, exitstatus):
     for container in containers:
         if container.name in running_containers:
             container.stop()
-            container.remove()
 
 
 @pytest.fixture()
