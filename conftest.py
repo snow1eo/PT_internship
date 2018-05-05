@@ -42,7 +42,7 @@ def pytest_sessionstart(session):
             else:
                 print(e)
     client.containers.prune()
-    sleep(15)  # waiting for start containers
+    sleep(5)  # waiting for start containers
 
 
 def pytest_sessionfinish(session, exitstatus):
