@@ -6,7 +6,7 @@ import docker
 import pytest
 
 from modules.database import reset_database
-from modules.transports import get_transport_config
+from modules.transports import get_transport_config, close_all_connections
 
 DOCKER_PATH = 'tests'
 TEST_DIR = '.test_tmp'
@@ -45,6 +45,7 @@ def pytest_sessionstart(session):
 
 
 def pytest_sessionfinish(session, exitstatus):
+    close_all_connections()
     containers = docker.from_env().containers.list()
     running_containers = {env['name'] for env in containers_env.values()}
     for container in containers:

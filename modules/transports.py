@@ -10,7 +10,8 @@ from modules.errors import TransportConnectionError, MySQLError, \
 
 ENV_FILE = os.path.join('config', 'env.json')
 _config = None
-
+_TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
+_connections = {transport: list() for transport in _TRANSPORT_LIST}
 
 class MySQLTransport:
     NAME = 'MySQL'
@@ -33,6 +34,7 @@ class MySQLTransport:
         self.close()
 
     def connect(self, database=None, persistent=False):
+        global _connections
         self.env.update(dict(database=database))
         self.persistent = persistent
         if persistent and self.is_connected:
@@ -55,7 +57,7 @@ class MySQLTransport:
             raise TransportConnectionError(self.env['host'], self.env['port'])
         if persistent:
             _connections[self.NAME].append(self)
-        self.is_connected = True
+            self.is_connected = True
 
     def close(self):
         if self.conn:
@@ -69,7 +71,7 @@ class MySQLTransport:
         with self.conn.cursor() as curr:
             try:
                 curr.execute(sql)
-            except Exception as e_info:
+            except Exception:
                 raise MySQLError(sql)
         self.conn.commit()
         return curr.fetchall()
@@ -97,6 +99,7 @@ class SSHTransport:
         self.close()
 
     def connect(self, persistent=False):
+        global _connections
         self.persistent = persistent
         if persistent and self.is_connected:
             self.conn = _get_connection(self)
@@ -112,7 +115,10 @@ class SSHTransport:
             self.is_connected = True
 
     def close(self):
-        self.conn.close()
+        try:
+            self.conn.close()
+        except Exception:
+            pass
         if self.is_connected and self.persistent:
             _connections[self.NAME].remove(self)
         self.is_connected = False
@@ -134,11 +140,18 @@ class SSHTransport:
         return data
 
 
+_TRANSPORTS = {
+    'SSH': SSHTransport,
+    'MySQL': MySQLTransport
+    }
+
+
 def close_all_connections():
+    global _connections
     for connections in _connections.values():
         for conn in connections:
             conn.close()
-    _connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
+    _connections = {transport: list() for transport in _TRANSPORT_LIST}
 
 
 def _get_connection(transport):
@@ -147,19 +160,12 @@ def _get_connection(transport):
             return connected.conn
 
 
-_AVAILABLE_TRANSPORTS = {
-    'SSH': SSHTransport,
-    'MySQL': MySQLTransport
-    }
-_connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
-
-
 def get_transport(transport_name,
                   host=None,
                   port=None,
                   login=None,
                   password=None):
-    if transport_name not in _AVAILABLE_TRANSPORTS.keys():
+    if transport_name not in _TRANSPORT_LIST:
         raise UnknownTransport(transport_name)
 
     config = get_transport_config()
@@ -168,7 +174,7 @@ def get_transport(transport_name,
     login = login or config['transports'][transport_name]['login']
     password = password or config['transports'][transport_name]['password']
 
-    return _AVAILABLE_TRANSPORTS[transport_name](host, port, login, password)
+    return _TRANSPORTS[transport_name](host, port, login, password)
 
 
 def get_transport_config():
