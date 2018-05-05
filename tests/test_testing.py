@@ -9,5 +9,5 @@ def test_run_tests(change_dir, create_new_database):
     run_tests()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        tests_writed = len(curr.execute("SELECT * FROM scandata").fetchall())
-    assert total_tests == tests_writed
+        tests_written = len(curr.execute("SELECT * FROM scandata").fetchall())
+    assert total_tests == tests_written

@@ -13,6 +13,7 @@ _config = None
 _TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
 _connections = {transport: list() for transport in _TRANSPORT_LIST}
 
+
 class MySQLTransport:
     NAME = 'MySQL'
 

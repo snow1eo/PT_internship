@@ -11,8 +11,6 @@ def main():
     try:
         ssh = get_transport('SSH')
         ssh.connect(persistent=True)
-        ssh2 = get_transport('SSH')
-        ssh2.connect(persistent=True)
         try:
             ssh.get_file(os.path.join(env['path'], env['name']))
         except SSHFileNotFound:

@@ -57,7 +57,7 @@ class TestMySQLTransport:
 
     def test_connect_wrong_host(self):
         with pytest.raises(TransportConnectionError):
-             with get_transport('MySQL', port=666):
+            with get_transport('MySQL', port=666):
                 pass
 
     def test_connect_wrong_db(self):

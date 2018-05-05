@@ -29,7 +29,7 @@ def get_context():
     Control = namedtuple('Control', 'ID, title, description, requirement, status')
     Transport = namedtuple('Transport', 'name, password, login, port')
     transports = [Transport(name, param['password'], param['login'], param['port'])
-                            for name, param in env['transports'].items()]
+                  for name, param in env['transports'].items()]
 
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
