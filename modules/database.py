@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sqlite3
+from datetime import datetime
 
 from modules.errors import ConfigError
 
@@ -38,7 +39,9 @@ def check_config():
 
 
 def init_database():
-    delete_database()
+    check_config()
+    if os.path.exists(DB_NAME):
+        return
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
@@ -51,23 +54,49 @@ def init_database():
         for id_, params in controls.items():
             curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)",
                          (id_, params['title'], params['descr'], params['req']))
+        curr.execute("""CREATE TABLE IF NOT EXISTS scanning(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        start TEXT,
+                        finish TEXT)""")
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
-                    id INTEGER PRIMARY KEY,
-                    ctrl_id INTEGER NOT NULL,
-                    status INTEGER,
-                    FOREIGN KEY (ctrl_id) REFERENCES control(id))""")
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ctrl_id INTEGER NOT NULL,
+                        status INTEGER,
+                        scan_id INTEGER,
+                        FOREIGN KEY (ctrl_id) REFERENCES control(id),
+                        FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
 
 
-def delete_database():
+def reset_database():
     global _controls
     _controls = None
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
+    init_database()
+    init_scanning()
+    set_finish_time()
 
 
 def add_control(ctrl_id, status):
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
+        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
         curr.execute("PRAGMA foreign_keys = ON")
-        curr.execute("INSERT INTO scandata VALUES (NULL, ?, ?)",
-                     (ctrl_id, status))
+        curr.execute("INSERT INTO scandata VALUES (NULL, ?, ?, ?)",
+                     (ctrl_id, status, scan_id))
+
+
+def init_scanning():
+    init_database()
+    with sqlite3.connect(DB_NAME) as db:
+        curr = db.cursor()
+        curr.execute("INSERT INTO scanning VALUES (NULL, ?, NULL)",
+                     (str(datetime.now()),))
+
+
+def set_finish_time():
+    with sqlite3.connect(DB_NAME) as db:
+        curr = db.cursor()
+        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
+        curr.execute("UPDATE scanning SET finish = ? WHERE id = ?",
+                     (str(datetime.now()), scan_id))

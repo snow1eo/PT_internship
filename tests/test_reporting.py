@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 import pytest
 
@@ -8,16 +7,16 @@ from modules.reporting import TEMPLATE_HTML, render, get_context, generate_repor
 
 
 @pytest.mark.first
-def test_get_context():
-    assert isinstance(get_context(datetime.now(), datetime.now()), dict)
+def test_get_context(change_dir, create_new_database):
+    assert isinstance(get_context(), dict)
 
 
-def test_render():
-    render(TEMPLATE_HTML, get_context(datetime.now(), datetime.now()))
+def test_render(change_dir, create_new_database):
+    render(TEMPLATE_HTML, get_context())
 
 
-def test_generate_report(change_dir):
+def test_generate_report(change_dir, create_new_database):
     init_database()
-    generate_report('test.pdf', datetime.now(), datetime.now())
+    generate_report('test.pdf')
     assert os.path.exists('test.pdf')
     os.remove('test.pdf')

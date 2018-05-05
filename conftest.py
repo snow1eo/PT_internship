@@ -5,6 +5,7 @@ from time import sleep
 import docker
 import pytest
 
+from modules.database import reset_database
 from modules.transports import get_transport_config
 
 DOCKER_PATH = 'tests'
@@ -74,3 +75,8 @@ def change_dir(request):
         if os.path.exists(TEST_DIR):
             rmtree(TEST_DIR)
     request.addfinalizer(clean)
+
+
+@pytest.fixture(scope='module')
+def create_new_database():
+    reset_database()

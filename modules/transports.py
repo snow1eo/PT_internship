@@ -25,9 +25,6 @@ class MySQLTransport:
         self.is_connected = False
         self.persistent = False
 
-    def __del__(self):
-        self.close()
-
     def __enter__(self):
         self.connect()
         return self
@@ -138,11 +135,12 @@ class SSHTransport:
 
 
 def close_all_connections():
-    # TODO
-    pass
+    for connections in _connections.values():
+        for conn in connections:
+            conn.close()
+    _connections = {transport: list() for transport in _AVAILABLE_TRANSPORTS}
 
 
-# Выглядит костыльно, не знаю, как иначе
 def _get_connection(transport):
     for connected in _connections[transport.NAME]:
         if connected.env == transport.env:

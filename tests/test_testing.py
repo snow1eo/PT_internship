@@ -1,11 +1,10 @@
 import sqlite3
 
-from modules.database import DB_NAME, init_database
+from modules.database import DB_NAME
 from modules.testing import run_tests, get_tests
 
 
-def test_run_tests(change_dir):
-    init_database()
+def test_run_tests(change_dir, create_new_database):
     total_tests = len(get_tests())
     run_tests()
     with sqlite3.connect(DB_NAME) as db:
