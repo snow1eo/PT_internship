@@ -5,6 +5,8 @@ import sqlite3
 from datetime import datetime
 
 from modules.errors import ConfigError
+from modules.transports import get_transport_config, TransportConfig, \
+    get_transport_names, get_host_name
 
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
@@ -42,27 +44,37 @@ def init_database():
     check_config()
     if os.path.exists(DB_NAME):
         return
+    controls = get_controls()
+    transport_names = get_transport_names()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        curr.execute("PRAGMA foreign_keys = ON")
+        curr.execute("""PRAGMA foreign_keys = ON""")
         curr.execute("""CREATE TABLE IF NOT EXISTS control(
                         id INTEGER PRIMARY KEY,
-                        title TEXT,
+                        title TEXT NOT NULL,
                         description TEXT,
                         requirement)""")
-        controls = get_controls()
         for id_, params in controls.items():
             curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)",
                          (id_, params['title'], params['descr'], params['req']))
+        curr.execute("""CREATE TABLE IF NOT EXISTS transport(
+                        name TEXT PRIMARY KEY,
+                        login TEXT NOT NULL,
+                        port INTEGER NOT NULL)""")
+        for transport_name in transport_names:
+            transport = get_transport_config(transport_name)
+            curr.execute("INSERT INTO transport VALUES (?, ?, ?)",
+                          (transport_name, transport.login, transport.port))
         curr.execute("""CREATE TABLE IF NOT EXISTS scanning(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        host TEXT NOT NULL,
                         start TEXT,
                         finish TEXT)""")
         curr.execute("""CREATE TABLE IF NOT EXISTS scandata(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         ctrl_id INTEGER NOT NULL,
                         status INTEGER,
-                        scan_id INTEGER,
+                        scan_id INTEGER NOT NULL,
                         FOREIGN KEY (ctrl_id) REFERENCES control(id),
                         FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
 
@@ -90,8 +102,8 @@ def init_scanning():
     init_database()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        curr.execute("INSERT INTO scanning VALUES (NULL, ?, NULL)",
-                     (str(datetime.now()),))
+        curr.execute("INSERT INTO scanning VALUES (NULL, ?, ?, NULL)",
+                     (get_host_name(), str(datetime.now())))
 
 
 def set_finish_time():

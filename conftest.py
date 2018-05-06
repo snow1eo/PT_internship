@@ -8,17 +8,17 @@ import pytest
 from modules.database import reset_database
 from modules.transports import get_transport_config, close_all_connections
 
-DOCKER_PATH = 'tests'
+DOCKER_PATH = os.path.join('tests', 'dockerfiles')
 TEST_DIR = '.test_tmp'
-port_ssh = get_transport_config()['transports']['SSH']['port']
-port_sql = get_transport_config()['transports']['MySQL']['port']
-env_sql = get_transport_config()['transports']['MySQL']['environment']
+port_ssh = get_transport_config('SSH').port
+port_sql = get_transport_config('MySQL').port
+env_sql = get_transport_config('MySQL').environment
 containers_env = {
-    'Dockerfile_ubuntu_sshd': {
+    'ubuntu_sshd': {
         'name': 'cont_ubuntu_sshd',
         'ports': {'22/tcp': port_ssh}
     },
-    'Dockerfile_mariadb': {
+    'mariadb': {
         'name': 'mariadb',
         'ports': {'3306/tcp': ('127.0.0.1', port_sql)},
         'environment': env_sql

@@ -9,7 +9,8 @@ import pytest
 from modules.database import CFG_NAME, DB_NAME, check_config, reset_database, \
     init_database, add_control, get_controls, get_tests, init_scanning, set_finish_time
 
-REQUIRED_TABLES = frozenset({'control', 'scandata', 'scanning', 'sqlite_sequence'})
+REQUIRED_TABLES = frozenset({'transport', 'control', 'scandata',
+                             'scanning', 'sqlite_sequence'})
 TEST_NUM_PASS = 200   # any value for pass test
 TEST_NUM_ERR = 404    # any value, which doesn't exist in DB
 TEST_STATUS = 3       # any value for test

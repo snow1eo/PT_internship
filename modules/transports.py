@@ -1,4 +1,5 @@
 import json
+from typing import NamedTuple
 
 import os.path
 import paramiko
@@ -9,9 +10,9 @@ from modules.errors import TransportConnectionError, MySQLError, \
     RemoteHostCommandError, SSHFileNotFound
 
 ENV_FILE = os.path.join('config', 'env.json')
-_config = None
 _TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
 _connections = {transport: list() for transport in _TRANSPORT_LIST}
+_raw_conf = None
 
 
 class MySQLTransport:
@@ -147,6 +148,41 @@ _TRANSPORTS = {
     }
 
 
+class TransportConfig(NamedTuple):
+    host: str
+    port: int
+    login: str
+    password: str
+    environment: dict
+
+
+def _load_config():
+    global _raw_conf
+    if not _raw_conf:
+        with open(ENV_FILE) as f:
+            _raw_conf = json.load(f)
+
+
+def get_transport_config(transport_name):
+    _load_config()
+    return TransportConfig(
+            host=_raw_conf['host'],
+            port=_raw_conf['transports'][transport_name]['port'],
+            login=_raw_conf['transports'][transport_name]['login'],
+            password=_raw_conf['transports'][transport_name]['password'],
+            environment=_raw_conf['transports'][transport_name]['environment'])
+
+
+def get_transport_names():
+    _load_config()
+    return set(_raw_conf['transports'].keys())
+
+
+def get_host_name():
+    _load_config()
+    return _raw_conf['host']
+
+
 def close_all_connections():
     global _connections
     for connections in _connections.values():
@@ -168,19 +204,9 @@ def get_transport(transport_name,
                   password=None):
     if transport_name not in _TRANSPORT_LIST:
         raise UnknownTransport(transport_name)
-
-    config = get_transport_config()
-    host = host or config['host']
-    port = port or config['transports'][transport_name]['port']
-    login = login or config['transports'][transport_name]['login']
-    password = password or config['transports'][transport_name]['password']
-
+    config = get_transport_config(transport_name)
+    host = host or config.host
+    port = port or config.port
+    login = login or config.login
+    password = password or config.password
     return _TRANSPORTS[transport_name](host, port, login, password)
-
-
-def get_transport_config():
-    global _config
-    if not _config:
-        with open(ENV_FILE) as f:
-            _config = json.load(f)
-    return _config

@@ -6,9 +6,9 @@ from modules.transports import get_transport, get_transport_config, \
     SSHTransport, MySQLTransport
 
 PATH = 'tests'
-port_ssh = get_transport_config()['transports']['SSH']['port']
-port_sql = get_transport_config()['transports']['MySQL']['port']
-env_sql = get_transport_config()['transports']['MySQL']['environment']
+port_ssh = get_transport_config('SSH').port
+port_sql = get_transport_config('MySQL').port
+env_sql = get_transport_config('MySQL').environment
 
 
 def test_get_ssh_transport_from_params_pass():

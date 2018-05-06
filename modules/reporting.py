@@ -8,7 +8,7 @@ from weasyprint import HTML, CSS
 
 from modules.database import DB_NAME
 from modules.statuses import Status
-from modules.transports import get_transport_config
+from modules.transports import get_transport_config, get_host_name
 
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
 CSS_FILE = os.path.join('templates', 'style.css')
@@ -24,14 +24,13 @@ def render(tpl_path, context):
 
 
 def get_context():
-    env = get_transport_config()
     Control = namedtuple('Control', 'ID, title, description, requirement, status')
-    Transport = namedtuple('Transport', 'name, password, login, port')
-    transports = [Transport(name, param['password'], param['login'], param['port'])
-                  for name, param in env['transports'].items()]
+    Transport = namedtuple('Transport', 'name, login, port')
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
+        transports = [Transport(name, login, port) for name, login, port in
+                      curr.execute("SELECT * FROM transport")]
         controls = [Control(ID, title, desc, requir, Status(code).name) for
                     ID, title, desc, requir, code in
                     curr.execute("""SELECT scandata.id, control.title,
@@ -46,7 +45,7 @@ def get_context():
     statuses_count = {Status(code).name: 0 for code in range(1, 6)}
     statuses_count.update(dict(Counter([control.status for control in controls])))
     return dict(
-        host=env['host'],
+        host=get_host_name(),
         transports=transports,
         start_time=start_time.strftime(TIME_FORMAT),
         finish_time=finish_time.strftime(TIME_FORMAT),
