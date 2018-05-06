@@ -27,10 +27,13 @@ def test_000_file_exist_3(no_ssh_connections):
     assert test0.main() == Status.NOT_APPLICABLE
 
 
+def test_000_file_exist_4(no_transports):
+    assert test0.main() == Status.ERROR
+
+
 def test_001_database_exist_1():
     with get_transport('MySQL') as sql:
         sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
-        sql.close()
         sql.connect('test_db')
         sql.sqlexec("""CREATE TABLE IF NOT EXISTS test_table (
                     name VARCHAR(20), owner VARCHAR(20))""")
@@ -46,3 +49,7 @@ def test_001_database_exist_2():
 
 def test_001_database_exist_3(no_mysql_connections):
     assert test1.main() == Status.NOT_APPLICABLE
+
+
+def test_001_database_exist_4(no_transports):
+    assert test1.main() == Status.ERROR

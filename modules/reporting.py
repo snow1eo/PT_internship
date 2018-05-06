@@ -8,7 +8,7 @@ from weasyprint import HTML, CSS
 
 from modules.database import DB_NAME
 from modules.statuses import Status
-from modules.transports import get_transport_config, get_host_name
+from modules.transports import get_host_name
 
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
 CSS_FILE = os.path.join('templates', 'style.css')

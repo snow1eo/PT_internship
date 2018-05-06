@@ -5,8 +5,7 @@ import sqlite3
 from datetime import datetime
 
 from modules.errors import ConfigError
-from modules.transports import get_transport_config, TransportConfig, \
-    get_transport_names, get_host_name
+from modules.transports import get_transport_config, get_transport_names, get_host_name
 
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')

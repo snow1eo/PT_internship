@@ -64,6 +64,11 @@ def no_mysql_connections(monkeypatch):
     monkeypatch.delattr('pymysql.connect')
 
 
+@pytest.fixture()
+def no_transports(monkeypatch):
+    monkeypatch.delattr('modules.transports._TRANSPORTS')
+
+
 @pytest.fixture(scope='module')
 def change_dir(request):
     if os.path.exists(TEST_DIR):
