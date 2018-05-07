@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System compliance report</title>
+</head>
+<body>
+
+<article class="A4">
+    <div class="main-page-wrapper">
+        <h1 class="main-title">
+            System compliance report
+        </h1>
+    </div>
+</article>
+
+<article class="A4">
+    <h1 class="main-title">
+        System summary
+    </h1>
+    <div>
+        <p> System address: {{ host }} </p>
+        <br> Transports: </br>
+        {% for transport in transports %}
+        <p> {{ transport.name }}: </p>
+        <p> Port: {{ transport.port }} </p>
+        <p> Login: {{ transport.login }} </p>
+        {% endfor %}
+    </div>
+</article>
+
+<article class="A4">
+    <h1 class="main-title">
+        Compliance summary
+    </h1>
+    <div>
+        <p> Start: {{ start_time }} </p>
+        <p> Finish: {{ finish_time }}
+        <p> Duration: {{ duration }} </p>
+    </div>
+    <div>
+        <p> Total controls: {{ total_controls }} </p>
+        {% for name, count in statuses.items() %}
+        <p> {{ name }}: {{ count }} </p>
+        {% endfor %}
+    </div>
+</article>
+
+{% for control in controls %}
+<article class="A4">
+    <h3>{{ control.title }}</h3>
+    <h4>id: {{ control.ID }}</h4>
+    <p> Requirement: {{ control.requirement }} </p>
+    <p> System: {{ control.status }}</p>
+        {% if control.error %}
+    <p> Error: {{ control.error }} </p>
+        {% endif %}
+    <br> {{ control.description }} </br>
+</article>
+{% endfor %}
+
+</body>
+</html>
