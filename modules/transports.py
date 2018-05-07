@@ -30,15 +30,8 @@ class MySQLTransport:
         self.conn = None
         self.connect()
 
-    def __enter__(self):
-        self.connect()
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.close()
-
     def connect(self, database=None):
-        self.env['database'] = database
+        self.env.update(dict(database=database))
         try:
             self.conn = pymysql.connect(**self.env,
                                         charset='utf8',
@@ -82,13 +75,6 @@ class SSHTransport:
         self.conn = paramiko.SSHClient()
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.connect()
-
-    def __enter__(self):
-        self.connect()
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.close()
 
     def connect(self):
         try:

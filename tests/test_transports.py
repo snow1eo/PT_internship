@@ -43,84 +43,78 @@ def test_get_transport_except():
 
 class TestMySQLTransport:
     def test_connect_pass(self):
-        with get_transport('MySQL'):
-            pass
+        get_transport('MySQL')
 
     def test_persistent_connection(self):
         assert get_transport('MySQL') is get_transport('MySQL')
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
-            with get_transport('MySQL', password='wrong'):
-                pass
+            get_transport('MySQL', password='wrong')
 
     def test_connect_wrong_host(self):
         with pytest.raises(TransportConnectionError):
-            with get_transport('MySQL', port=WRONG_PORT):
-                pass
+            get_transport('MySQL', port=WRONG_PORT)
 
     def test_connect_wrong_db(self):
         with pytest.raises(UnknownDatabase):
-            with get_transport('MySQL') as sql:
-                sql.connect('wrong_database')
+            sql = get_transport('MySQL')
+            sql.connect('wrong_database')
 
     def test_sqlexec_pass(self):
-        with get_transport('MySQL') as sql:
-            sql.sqlexec('SHOW DATABASES')
+        sql = get_transport('MySQL')
+        sql.sqlexec('SHOW DATABASES')
 
     def test_sqlexec_request(self):
-        with get_transport('MySQL') as sql:
-            sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
-            sql.connect('test_db')
-            sql.sqlexec("""CREATE TABLE IF NOT EXISTS test (
-                        name VARCHAR(20), owner VARCHAR(20))""")
-            sql.sqlexec("INSERT INTO test VALUES ('Dolly', 'Me')")
-            data = sql.sqlexec('SELECT * FROM test')
+        sql = get_transport('MySQL')
+        sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
+        sql.connect('test_db')
+        sql.sqlexec("""CREATE TABLE IF NOT EXISTS test (
+                    name VARCHAR(20), owner VARCHAR(20))""")
+        sql.sqlexec("INSERT INTO test VALUES ('Dolly', 'Me')")
+        data = sql.sqlexec('SELECT * FROM test')
         assert data == [{'name': 'Dolly', 'owner': 'Me'}]
 
     def test_sqlexec_wrong_request(self):
-        with get_transport('MySQL') as sql:
-            with pytest.raises(MySQLError):
-                sql.sqlexec('WRONG REQUEST')
+        sql = get_transport('MySQL')
+        with pytest.raises(MySQLError):
+            sql.sqlexec('WRONG REQUEST')
 
 
 class TestSSHTransport:
     def test_connect_pass(self):
-        with get_transport('SSH'):
-            pass
+        get_transport('SSH')
 
     def test_persistent_connection(self):
         assert get_transport('SSH') is get_transport('SSH')
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
-            with get_transport('SSH', password='wrong'):
-                pass
+            get_transport('SSH', password='wrong')
 
     def test_connect_wrong_host(self):
         with pytest.raises(TransportConnectionError):
-            with get_transport('SSH', port=WRONG_PORT):
-                pass
+            get_transport('SSH', port=WRONG_PORT)
 
     def test_execute_pass(self):
-        with get_transport('SSH') as ssh:
-            assert isinstance(ssh.execute('ls /'), tuple)
+        ssh = get_transport('SSH')
+        assert isinstance(ssh.execute('ls /'), tuple)
 
     def test_execute_except(self):
-        with get_transport('SSH') as ssh:
-            with pytest.raises(TransportError):
-                ssh.execute('wrong_command')
+        ssh = get_transport('SSH')
+        with pytest.raises(TransportError):
+            ssh.execute('wrong_command')
 
     def test_execute_permission_denied_except(self):
-        with get_transport('SSH', login='testuser', password='pass') as ssh:
-            with pytest.raises(TransportError):
-                ssh.execute('wrong_command')
+        ssh = get_transport('SSH', login='testuser', password='pass')
+        with pytest.raises(TransportError):
+            ssh.execute('cat /etc/shadow')
 
     def test_get_file_pass(self):
-        with get_transport('SSH') as ssh:
-            assert isinstance(ssh.get_file('/etc/passwd'), bytes)
+        ssh = get_transport('SSH')
+        assert isinstance(ssh.get_file('/etc/passwd'), bytes)
 
     def test_get_file_except(self):
-        with get_transport('SSH') as ssh:
-            with pytest.raises(SSHFileNotFound):
-                ssh.get_file('/wrong_file')
+        ssh = get_transport('SSH')
+        with pytest.raises(SSHFileNotFound):
+            ssh.get_file('/wrong_file')
