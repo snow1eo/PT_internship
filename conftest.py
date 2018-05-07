@@ -6,7 +6,7 @@ import docker
 import pytest
 
 from modules.database import reset_database
-from modules.transports import get_transport_config, close_all_connections
+from modules.transports import get_transport_config#, close_all_connections
 
 DOCKER_PATH = os.path.join('tests', 'dockerfiles')
 TEST_DIR = '.test_tmp'
@@ -26,7 +26,7 @@ containers_env = {
 }
 
 
-def pytest_sessionstart(session):    
+def pytest_sessionstart(session):
     client = docker.from_env()
     client.containers.prune()
     for dockerfile, container_env in containers_env.items():
@@ -46,7 +46,7 @@ def pytest_sessionstart(session):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    close_all_connections()
+    # close_all_connections()
     containers = docker.from_env().containers.list()
     running_containers = {env['name'] for env in containers_env.values()}
     for container in containers:
@@ -80,6 +80,7 @@ def change_dir(request):
         os.chdir('..')
         if os.path.exists(TEST_DIR):
             rmtree(TEST_DIR)
+
     request.addfinalizer(clean)
 
 

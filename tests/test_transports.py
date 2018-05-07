@@ -71,7 +71,6 @@ class TestMySQLTransport:
     def test_sqlexec_request(self):
         with get_transport('MySQL') as sql:
             sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
-            sql.close()
             sql.connect('test_db')
             sql.sqlexec("""CREATE TABLE IF NOT EXISTS test (
                         name VARCHAR(20), owner VARCHAR(20))""")

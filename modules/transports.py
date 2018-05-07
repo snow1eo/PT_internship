@@ -1,3 +1,4 @@
+import functools
 import json
 from typing import NamedTuple
 
@@ -9,9 +10,10 @@ from modules.errors import TransportConnectionError, MySQLError, \
     AuthenticationError, UnknownTransport, UnknownDatabase, \
     RemoteHostCommandError, SSHFileNotFound
 
+MAX_CACHED_CONNECTIONS = 100
 ENV_FILE = os.path.join('config', 'env.json')
 _TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
-_connections = {transport: list() for transport in _TRANSPORT_LIST}
+#_connections = {transport: list() for transport in _TRANSPORT_LIST}
 _raw_conf = None
 
 
@@ -23,11 +25,10 @@ class MySQLTransport:
             host=host,
             port=port,
             user=login,
-            password=password)
+            password=password,
+            database=None)
         self.conn = None
-        self.is_connected = False
-        self.persistent = False
-        self.connect(persistent=True)
+        self.connect()
 
     def __enter__(self):
         self.connect()
@@ -36,13 +37,8 @@ class MySQLTransport:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-    def connect(self, database=None, persistent=False):
-        global _connections
-        self.env.update(dict(database=database))
-        self.persistent = persistent
-        if persistent and self.is_connected:
-            self.conn = _get_connection(self)
-            return
+    def connect(self, database=None):
+        self.env['database'] = database
         try:
             self.conn = pymysql.connect(**self.env,
                                         charset='utf8',
@@ -58,17 +54,11 @@ class MySQLTransport:
                 raise UnknownDatabase(database)
         except Exception:
             raise TransportConnectionError(self.env['host'], self.env['port'])
-        if persistent:
-            _connections[self.NAME].append(self)
-            self.is_connected = True
 
     def close(self):
         if self.conn:
             self.conn.close()
             self.conn = None
-        if self.is_connected and self.persistent:
-            _connections[self.NAME].remove(self)
-            self.is_connected = False
 
     def sqlexec(self, sql):
         with self.conn.cursor() as curr:
@@ -91,9 +81,7 @@ class SSHTransport:
             password=password)
         self.conn = paramiko.SSHClient()
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.is_connected = False
-        self.persistent = False
-        self.connect(persistent=True)
+        self.connect()
 
     def __enter__(self):
         self.connect()
@@ -102,30 +90,16 @@ class SSHTransport:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-    def connect(self, persistent=False):
-        global _connections
-        self.persistent = persistent
-        if persistent and self.is_connected:
-            self.conn = _get_connection(self)
-            return
+    def connect(self):
         try:
             self.conn.connect(**self.env)
         except paramiko.ssh_exception.AuthenticationException:
             raise AuthenticationError(self.env['username'], self.env['password'])
         except Exception:
             raise TransportConnectionError(self.env['hostname'], self.env['port'])
-        if persistent:
-            _connections[self.NAME].append(self)
-            self.is_connected = True
 
     def close(self):
-        try:
-            self.conn.close()
-        except Exception:
-            pass
-        if self.is_connected and self.persistent:
-            _connections[self.NAME].remove(self)
-        self.is_connected = False
+        self.conn.close()
 
     def execute(self, command):
         stdin, stdout, stderr = self.conn.exec_command(command)
@@ -185,20 +159,15 @@ def get_host_name():
     return _raw_conf['host']
 
 
-def close_all_connections():
-    global _connections
-    for connections in _connections.values():
-        for conn in connections:
-            conn.close()
-    _connections = {transport: list() for transport in _TRANSPORT_LIST}
+# def close_all_connections():
+#     global _connections
+#     for connections in _connections.values():
+#         for conn in connections:
+#             conn.close()
+#     _connections = {transport: list() for transport in _TRANSPORT_LIST}
 
 
-def _get_connection(transport):
-    for connected in _connections[transport.NAME]:
-        if connected.env == transport.env:
-            return connected.conn
-
-
+@functools.lru_cache(maxsize=MAX_CACHED_CONNECTIONS)
 def get_transport(transport_name,
                   host=None,
                   port=None,
