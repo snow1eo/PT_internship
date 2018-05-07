@@ -1,5 +1,6 @@
 import functools
 import json
+from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
 import os.path
@@ -10,14 +11,29 @@ from modules.errors import TransportConnectionError, MySQLError, \
     AuthenticationError, UnknownTransport, UnknownDatabase, \
     RemoteHostCommandError, SSHFileNotFound
 
-MAX_CACHED_CONNECTIONS = 100
+MAX_CACHED_CONNECTIONS = None
 ENV_FILE = os.path.join('config', 'env.json')
 _TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
-#_connections = {transport: list() for transport in _TRANSPORT_LIST}
 _raw_conf = None
 
 
-class MySQLTransport:
+class Transport(object):
+    NAME: str
+
+    @abstractmethod
+    def __init__(self, host, port, login, password):
+        pass
+
+    @abstractmethod
+    def connect(self):
+        pass
+
+    @abstractmethod
+    def close(self):
+        pass
+
+
+class MySQLTransport(Transport):
     NAME = 'MySQL'
 
     def __init__(self, host, port, login, password):
@@ -63,7 +79,7 @@ class MySQLTransport:
         return curr.fetchall()
 
 
-class SSHTransport:
+class SSHTransport(Transport):
     NAME = 'SSH'
 
     def __init__(self, host, port, login, password):
