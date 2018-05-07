@@ -11,7 +11,7 @@ test1 = importlib.import_module('.001_test_db_exist', package='scripts')
 def test_000_file_exist_1():
     with get_transport('SSH') as ssh:
         ssh.execute('touch /testfile')
-    assert test0.main() == Status.COMPLIANT
+    assert test0.main()[0] == Status.COMPLIANT
 
 
 def test_000_file_exist_2():
@@ -20,15 +20,15 @@ def test_000_file_exist_2():
             ssh.execute('rm -f /testfile')
         except Exception:
             pass
-    assert test0.main() == Status.NOT_COMPLIANT
+    assert test0.main()[0] == Status.NOT_COMPLIANT
 
 
 def test_000_file_exist_3(no_ssh_connections):
-    assert test0.main() == Status.NOT_APPLICABLE
+    assert test0.main()[0] == Status.NOT_APPLICABLE
 
 
 def test_000_file_exist_4(no_transports):
-    assert test0.main() == Status.ERROR
+    assert test0.main()[0] == Status.ERROR and test1.main()[1]
 
 
 def test_001_database_exist_1():
@@ -38,18 +38,18 @@ def test_001_database_exist_1():
         sql.sqlexec("""CREATE TABLE IF NOT EXISTS test_table (
                     name VARCHAR(20), owner VARCHAR(20))""")
         sql.sqlexec("INSERT INTO test_table VALUES ('Dolly', 'Me')")
-    assert test1.main() == Status.COMPLIANT
+    assert test1.main()[0] == Status.COMPLIANT
 
 
 def test_001_database_exist_2():
     with get_transport('MySQL') as sql:
         sql.sqlexec('DROP DATABASE IF EXISTS test_db')
-    assert test1.main() == Status.NOT_COMPLIANT
+    assert test1.main()[0] == Status.NOT_COMPLIANT
 
 
 def test_001_database_exist_3(no_mysql_connections):
-    assert test1.main() == Status.NOT_APPLICABLE
+    assert test1.main()[0] == Status.NOT_APPLICABLE
 
 
 def test_001_database_exist_4(no_transports):
-    assert test1.main() == Status.ERROR
+    assert test1.main()[0] == Status.ERROR and test1.main()[1]

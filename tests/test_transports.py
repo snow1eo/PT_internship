@@ -47,9 +47,7 @@ class TestMySQLTransport:
             pass
 
     def test_persistent_connection(self):
-        sql1 = get_transport('MySQL')
-        sql2 = get_transport('MySQL')
-        assert sql1.conn is sql2.conn
+        assert get_transport('MySQL') is get_transport('MySQL')
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
@@ -93,9 +91,7 @@ class TestSSHTransport:
             pass
 
     def test_persistent_connection(self):
-        ssh1 = get_transport('SSH')
-        ssh2 = get_transport('SSH')
-        assert ssh1.conn is ssh2.conn
+        assert get_transport('SSH') is get_transport('SSH')
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
@@ -112,6 +108,11 @@ class TestSSHTransport:
             assert isinstance(ssh.execute('ls /'), tuple)
 
     def test_execute_except(self):
+        with get_transport('SSH') as ssh:
+            with pytest.raises(TransportError):
+                ssh.execute('wrong_command')
+
+    def test_execute_permission_denied_except(self):
         with get_transport('SSH', login='testuser', password='pass') as ssh:
             with pytest.raises(TransportError):
                 ssh.execute('wrong_command')
