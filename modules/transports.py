@@ -27,6 +27,7 @@ class MySQLTransport:
         self.conn = None
         self.is_connected = False
         self.persistent = False
+        self.connect(persistent=True)
 
     def __enter__(self):
         self.connect()
@@ -92,6 +93,7 @@ class SSHTransport:
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.is_connected = False
         self.persistent = False
+        self.connect(persistent=True)
 
     def __enter__(self):
         self.connect()

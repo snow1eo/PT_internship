@@ -10,8 +10,7 @@ def run_tests():
     for id_, test in tests.items():
         try:
             test_mod = import_module('.'+test, package='scripts')
-            status = test_mod.main()
+            status, err = test_mod.main()
         except Exception as e_info:
-            print('ERROR: {}'.format(e_info))
-            status = Status.EXCEPTION
-        add_control(id_, status)
+            status, err = Status.EXCEPTION, e_info
+        add_control(id_, status, err)

@@ -24,19 +24,19 @@ def render(tpl_path, context):
 
 
 def get_context():
-    Control = namedtuple('Control', 'ID, title, description, requirement, status')
+    Control = namedtuple('Control', 'ID, title, description, requirement, status, error')
     Transport = namedtuple('Transport', 'name, login, port')
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
         transports = [Transport(name, login, port) for name, login, port in
                       curr.execute("SELECT * FROM transport")]
-        controls = [Control(ID, title, desc, requir, Status(code).name) for
-                    ID, title, desc, requir, code in
+        controls = [Control(ID, title, desc, requir, Status(code).name, error) for
+                    ID, title, desc, requir, code, error in
                     curr.execute("""SELECT scandata.id, control.title,
                         control.description, control.requirement,
-                        scandata.status FROM scandata INNER JOIN control
-                        ON scandata.ctrl_id = control.id AND
+                        scandata.status, scandata.error FROM scandata INNER JOIN
+                        control ON scandata.ctrl_id = control.id AND
                         scandata.scan_id = ?""", (scan_id,)).fetchall()]
         start_time, finish_time = map(
                 lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f"),

@@ -6,6 +6,7 @@ from modules.transports import get_transport, get_transport_config, \
     SSHTransport, MySQLTransport
 
 PATH = 'tests'
+WRONG_PORT = -1
 port_ssh = get_transport_config('SSH').port
 port_sql = get_transport_config('MySQL').port
 env_sql = get_transport_config('MySQL').environment
@@ -46,8 +47,9 @@ class TestMySQLTransport:
             pass
 
     def test_persistent_connection(self):
-        assert get_transport('MySQL').connect(persistent=True) is \
-               get_transport('MySQL').connect(persistent=True)
+        sql1 = get_transport('MySQL')
+        sql2 = get_transport('MySQL')
+        assert sql1.conn is sql2.conn
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
@@ -56,7 +58,7 @@ class TestMySQLTransport:
 
     def test_connect_wrong_host(self):
         with pytest.raises(TransportConnectionError):
-            with get_transport('MySQL', port=666):
+            with get_transport('MySQL', port=WRONG_PORT):
                 pass
 
     def test_connect_wrong_db(self):
@@ -91,8 +93,9 @@ class TestSSHTransport:
             pass
 
     def test_persistent_connection(self):
-        assert get_transport('SSH').connect(persistent=True) is \
-               get_transport('SSH').connect(persistent=True)
+        ssh1 = get_transport('SSH')
+        ssh2 = get_transport('SSH')
+        assert ssh1.conn is ssh2.conn
 
     def test_connect_wrong_auth(self):
         with pytest.raises(AuthenticationError):
@@ -101,7 +104,7 @@ class TestSSHTransport:
 
     def test_connect_wrong_host(self):
         with pytest.raises(TransportConnectionError):
-            with get_transport('SSH', port=666):
+            with get_transport('SSH', port=WRONG_PORT):
                 pass
 
     def test_execute_pass(self):

@@ -52,6 +52,9 @@
     <h4>id: {{ control.ID }}</h4>
     <p> Requirement: {{ control.requirement }} </p>
     <p> System: {{ control.status }}</p>
+        {% if control.error %}
+    <p> Error: {{ control.error }} </p>
+        {% endif %}
     <br> {{ control.description }} </br>
 </article>
 {% endfor %}

@@ -14,6 +14,7 @@ REQUIRED_TABLES = frozenset({'transport', 'control', 'scandata',
 TEST_NUM_PASS = 200   # any value for pass test
 TEST_NUM_ERR = 404    # any value, which doesn't exist in DB
 TEST_STATUS = 3       # any value for test
+ERROR = 'some error message'
 
 
 @pytest.mark.first
@@ -56,7 +57,7 @@ def test_set_finish_time(change_dir, create_new_database):
     set_finish_time()
 
 
-def test_add_control_pass(change_dir, create_new_database):
+def test_add_control_err_pass(change_dir, create_new_database):
     controls = {
             str(TEST_NUM_PASS): {
                 "title": "",
@@ -70,11 +71,32 @@ def test_add_control_pass(change_dir, create_new_database):
     rmtree('scripts')
     os.mkdir('scripts')
     reset_database()
-    add_control(TEST_NUM_PASS, TEST_STATUS)
+    add_control(TEST_NUM_PASS, TEST_STATUS, ERROR)
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         rec = curr.execute("""SELECT * FROM scandata""").fetchone()
-    assert rec[1:-1] == (TEST_NUM_PASS, TEST_STATUS)
+    assert rec[1:-1] == (TEST_NUM_PASS, TEST_STATUS, ERROR)
+
+
+def test_add_control_no_err_pass(change_dir, create_new_database):
+    controls = {
+            str(TEST_NUM_PASS): {
+                "title": "",
+                "descr": "",
+                "req": "",
+                "env": {}
+                }}
+    with open(CFG_NAME, 'w') as f:
+        json.dump(controls, f)
+    # очистка папки scripts для корректности конфига
+    rmtree('scripts')
+    os.mkdir('scripts')
+    reset_database()
+    add_control(TEST_NUM_PASS, TEST_STATUS, None)
+    with sqlite3.connect(DB_NAME) as db:
+        curr = db.cursor()
+        rec = curr.execute("""SELECT * FROM scandata""").fetchone()
+    assert rec[1:-1] == (TEST_NUM_PASS, TEST_STATUS, None)
 
 
 def test_add_control_foreign_key_err(change_dir, create_new_database):
@@ -82,4 +104,4 @@ def test_add_control_foreign_key_err(change_dir, create_new_database):
     os.mkdir('scripts')
     reset_database()
     with pytest.raises(sqlite3.IntegrityError):
-        add_control(TEST_NUM_ERR, TEST_STATUS)
+        add_control(TEST_NUM_ERR, TEST_STATUS, ERROR)

@@ -8,7 +8,6 @@ def main():
     try:
         env = get_controls()['001']['env']
         sql = get_transport('MySQL')
-        sql.connect(persistent=True)
         databases = [db['Database'] for db in sql.sqlexec('SHOW DATABASES')]
         if env['db_name'] not in databases:
             return Status.NOT_COMPLIANT
@@ -20,9 +19,9 @@ def main():
             return Status.NOT_COMPLIANT
         sql.connect(env['db_name'])
         if sql.sqlexec('SELECT * FROM {table_name}'.format(**env)):
-            return Status.COMPLIANT
-        return Status.NOT_COMPLIANT
+            return Status.COMPLIANT, None
+        return Status.NOT_COMPLIANT, None
     except TransportConnectionError:
-        return Status.NOT_APPLICABLE
-    except Exception:
-        return Status.ERROR
+        return Status.NOT_APPLICABLE, None
+    except Exception as e_info:
+        return Status.ERROR, str(e_info)
