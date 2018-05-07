@@ -1,6 +1,5 @@
-import functools
 import json
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import NamedTuple
 
 import os.path
@@ -15,6 +14,7 @@ MAX_CACHED_CONNECTIONS = None
 ENV_FILE = os.path.join('config', 'env.json')
 _TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
 _raw_conf = None
+_cache = dict()
 
 
 class Transport(object):
@@ -161,20 +161,22 @@ def get_host_name():
     return _raw_conf['host']
 
 
-# def close_all_connections():
-#     global _connections
-#     for connections in _connections.values():
-#         for conn in connections:
-#             conn.close()
-#     _connections = {transport: list() for transport in _TRANSPORT_LIST}
+def close_all_connections():
+    global _cache
+    for transport in _cache.values():
+        transport.close()
+    _cache = dict()
 
 
-@functools.lru_cache(maxsize=MAX_CACHED_CONNECTIONS)
 def get_transport(transport_name,
                   host=None,
                   port=None,
                   login=None,
                   password=None):
+    args = (transport_name, host, port, login, password)
+    global _cache
+    if args in _cache:
+        return _cache[args]
     if transport_name not in _TRANSPORT_LIST:
         raise UnknownTransport(transport_name)
     config = get_transport_config(transport_name)
@@ -182,4 +184,5 @@ def get_transport(transport_name,
     port = port or config.port
     login = login or config.login
     password = password or config.password
-    return _TRANSPORTS[transport_name](host, port, login, password)
+    _cache[args] = _TRANSPORTS[transport_name](host, port, login, password)
+    return _cache[args]
