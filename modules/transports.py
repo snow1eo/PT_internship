@@ -10,16 +10,13 @@ from modules.errors import TransportConnectionError, MySQLError, \
     AuthenticationError, UnknownTransport, UnknownDatabase, \
     RemoteHostCommandError, SSHFileNotFound
 
-MAX_CACHED_CONNECTIONS = None
 ENV_FILE = os.path.join('config', 'env.json')
 _TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
 _raw_conf = None
 _cache = dict()
 
 
-class Transport(object):
-    __metaclass__ = ABCMeta
-
+class Transport(metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, host, port, login, password):
         pass
