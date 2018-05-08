@@ -187,8 +187,7 @@ def get_host_name():
 
 
 def close_all_connections():
-    transports = tuple(_cache.values())
-    for transport in transports:
+    for transport in tuple(_cache.values()):
         transport.close()
 
 
