@@ -45,6 +45,10 @@ class TestMySQLTransport:
     def test_connect_pass(self):
         get_transport('MySQL')
 
+    def test_with_connect(self):
+        with get_transport('MySQL'):
+            pass
+
     def test_persistent_connection(self):
         assert get_transport('MySQL') is get_transport('MySQL')
 
@@ -84,6 +88,10 @@ class TestMySQLTransport:
 class TestSSHTransport:
     def test_connect_pass(self):
         get_transport('SSH')
+
+    def test_with_connect(self):
+        with get_transport('SSH'):
+            pass
 
     def test_persistent_connection(self):
         assert get_transport('SSH') is get_transport('SSH')

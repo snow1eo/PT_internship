@@ -56,16 +56,19 @@ def pytest_sessionfinish(session, exitstatus):
 
 @pytest.fixture()
 def no_ssh_connections(monkeypatch):
+    close_all_connections()
     monkeypatch.delattr('paramiko.SSHClient.connect')
 
 
 @pytest.fixture()
 def no_mysql_connections(monkeypatch):
+    close_all_connections()
     monkeypatch.delattr('pymysql.connect')
 
 
 @pytest.fixture()
 def no_transports(monkeypatch):
+    close_all_connections()
     monkeypatch.delattr('modules.transports._TRANSPORTS')
 
 
@@ -84,6 +87,6 @@ def change_dir(request):
     request.addfinalizer(clean)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def create_new_database():
     reset_database()

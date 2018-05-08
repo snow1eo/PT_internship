@@ -1,5 +1,5 @@
 import json
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
 import os.path
@@ -18,11 +18,23 @@ _cache = dict()
 
 
 class Transport(object):
-    NAME: str
+    __metaclass__ = ABCMeta
 
     @abstractmethod
     def __init__(self, host, port, login, password):
         pass
+
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
 
     @abstractmethod
     def connect(self):
@@ -34,8 +46,6 @@ class Transport(object):
 
 
 class MySQLTransport(Transport):
-    NAME = 'MySQL'
-
     def __init__(self, host, port, login, password):
         self.env = dict(
             host=host,
@@ -45,6 +55,9 @@ class MySQLTransport(Transport):
             database=None)
         self.conn = None
         self.connect()
+
+    def name(self):
+        return 'MySQL'
 
     def connect(self, database=None):
         self.env.update(dict(database=database))
@@ -68,6 +81,13 @@ class MySQLTransport(Transport):
         if self.conn:
             self.conn.close()
             self.conn = None
+        global _cache
+        _cache.pop(tuple([
+            self.name(),
+            self.env['host'],
+            self.env['port'],
+            self.env['user'],
+            self.env['password']]))
 
     def sqlexec(self, sql):
         with self.conn.cursor() as curr:
@@ -80,8 +100,6 @@ class MySQLTransport(Transport):
 
 
 class SSHTransport(Transport):
-    NAME = 'SSH'
-
     def __init__(self, host, port, login, password):
         self.env = dict(
             hostname=host,
@@ -91,6 +109,9 @@ class SSHTransport(Transport):
         self.conn = paramiko.SSHClient()
         self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.connect()
+
+    def name(self):
+        return 'SSH'
 
     def connect(self):
         try:
@@ -102,6 +123,13 @@ class SSHTransport(Transport):
 
     def close(self):
         self.conn.close()
+        global _cache
+        _cache.pop(tuple([
+            self.name(),
+            self.env['hostname'],
+            self.env['port'],
+            self.env['username'],
+            self.env['password']]))
 
     def execute(self, command):
         stdin, stdout, stderr = self.conn.exec_command(command)
@@ -162,10 +190,9 @@ def get_host_name():
 
 
 def close_all_connections():
-    global _cache
-    for transport in _cache.values():
+    transports = tuple(_cache.values())
+    for transport in transports:
         transport.close()
-    _cache = dict()
 
 
 def get_transport(transport_name,
@@ -173,10 +200,6 @@ def get_transport(transport_name,
                   port=None,
                   login=None,
                   password=None):
-    args = (transport_name, host, port, login, password)
-    global _cache
-    if args in _cache:
-        return _cache[args]
     if transport_name not in _TRANSPORT_LIST:
         raise UnknownTransport(transport_name)
     config = get_transport_config(transport_name)
@@ -184,5 +207,9 @@ def get_transport(transport_name,
     port = port or config.port
     login = login or config.login
     password = password or config.password
+    args = (transport_name, host, port, login, password)
+    global _cache
+    if args in _cache:
+        return _cache[args]
     _cache[args] = _TRANSPORTS[transport_name](host, port, login, password)
     return _cache[args]
