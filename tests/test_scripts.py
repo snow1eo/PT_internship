@@ -2,7 +2,6 @@ import importlib
 
 from modules.statuses import Status
 from modules.transports import get_transport, close_all_connections
-import scripts  # for Windows
 
 test0 = importlib.import_module('.000_test_file_exist', package='scripts')
 test1 = importlib.import_module('.001_test_db_exist', package='scripts')
@@ -50,10 +49,8 @@ def test_001_database_exist_2():
 
 
 def test_001_database_exist_3(no_mysql_connections):
-    close_all_connections()
     assert test1.main()[0] == Status.NOT_APPLICABLE
 
 
 def test_001_database_exist_4(no_transports):
-    close_all_connections()
     assert test1.main()[0] == Status.ERROR and test1.main()[1]
