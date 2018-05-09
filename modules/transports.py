@@ -16,6 +16,8 @@ _cache = dict()
 
 
 class Transport(metaclass=ABCMeta):
+    NAME: str
+
     def __init__(self, host, port, user, password):
         self.host = host
         self.port = port
@@ -23,11 +25,6 @@ class Transport(metaclass=ABCMeta):
         self.password = password
         self.conn = None
         self.connect()
-
-    @property
-    @abstractmethod
-    def name(self):
-        pass
 
     def __enter__(self):
         self.connect()
@@ -47,7 +44,7 @@ class Transport(metaclass=ABCMeta):
     def remove_from_cache(self):
         global _cache
         _cache.pop(tuple([
-            self.name(),
+            self.NAME,
             self.host,
             self.port,
             self.user,
@@ -55,8 +52,7 @@ class Transport(metaclass=ABCMeta):
 
 
 class MySQLTransport(Transport):
-    def name(self):
-        return 'MySQL'
+    NAME = 'MySQL'
 
     def connect(self, database=None):
         self.database = database
@@ -97,8 +93,7 @@ class MySQLTransport(Transport):
 
 
 class SSHTransport(Transport):
-    def name(self):
-        return 'SSH'
+    NAME = 'SSH'
 
     def connect(self):
         self.conn = paramiko.SSHClient()
@@ -134,21 +129,9 @@ class SSHTransport(Transport):
         return data
 
 
-class WMITransport(Transport):
-    def name(self):
-        return 'WMI'
-
-    def connect(self):
-        pass
-
-    def close(self):
-        pass
-
-
 _TRANSPORTS = {
     'SSH': SSHTransport,
-    'MySQL': MySQLTransport,
-    'WMI': WMITransport
+    'MySQL': MySQLTransport
     }
 
 
@@ -197,7 +180,7 @@ def get_transport(transport_name,
                   port=None,
                   user=None,
                   password=None):
-    if transport_name not in _TRANSPORTS.keys():
+    if transport_name not in _TRANSPORTS:
         raise UnknownTransport(transport_name)
     config = get_transport_config(transport_name)
     host = host or config.host
