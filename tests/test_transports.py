@@ -5,7 +5,6 @@ from modules.errors import UnknownTransport, AuthenticationError, SSHFileNotFoun
 from modules.transports import get_transport, get_transport_config, \
     SSHTransport, MySQLTransport
 
-PATH = 'tests'
 WRONG_PORT = -1
 port_ssh = get_transport_config('SSH').port
 port_sql = get_transport_config('MySQL').port

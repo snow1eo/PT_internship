@@ -1,4 +1,4 @@
-gi timport os
+import os
 from shutil import rmtree, copytree
 from time import sleep
 
