@@ -11,15 +11,18 @@ from modules.errors import TransportConnectionError, MySQLError, \
     RemoteHostCommandError, SSHFileNotFound
 
 ENV_FILE = os.path.join('config', 'env.json')
-_TRANSPORT_LIST = frozenset({'SSH', 'MySQL'})
 _raw_conf = None
 _cache = dict()
 
 
 class Transport(metaclass=ABCMeta):
-    @abstractmethod
-    def __init__(self, host, port, login, password):
-        pass
+    def __init__(self, host, port, user, password):
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.conn = None
+        self.connect()
 
     @property
     @abstractmethod
@@ -41,50 +44,47 @@ class Transport(metaclass=ABCMeta):
     def close(self):
         pass
 
+    def remove_from_cache(self):
+        global _cache
+        _cache.pop(tuple([
+            self.name(),
+            self.host,
+            self.port,
+            self.user,
+            self.password]))
+
 
 class MySQLTransport(Transport):
-    def __init__(self, host, port, login, password):
-        self.env = dict(
-            host=host,
-            port=port,
-            user=login,
-            password=password,
-            database=None)
-        self.conn = None
-        self.connect()
-
     def name(self):
         return 'MySQL'
 
     def connect(self, database=None):
-        self.env.update(dict(database=database))
+        self.database = database
         try:
-            self.conn = pymysql.connect(**self.env,
+            self.conn = pymysql.connect(host=self.host,
+                                        port=self.port,
+                                        user=self.user,
+                                        password=self.password,
+                                        database=self.database,
                                         charset='utf8',
                                         cursorclass=pymysql.cursors.DictCursor,
                                         unix_socket=False)
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
-                raise AuthenticationError(self.env['user'], self.env['password'])
+                raise AuthenticationError(self.user, self.password)
             elif "Can't connect to MySQL server" in str(e_info):
-                raise TransportConnectionError(self.env['host'], self.env['port'])
+                raise TransportConnectionError(self.host, self.port)
         except pymysql.err.InternalError as e_info:
             if "Unknown database" in str(e_info):
                 raise UnknownDatabase(database)
         except Exception:
-            raise TransportConnectionError(self.env['host'], self.env['port'])
+            raise TransportConnectionError(self.host, self.port)
 
     def close(self):
         if self.conn:
             self.conn.close()
             self.conn = None
-        global _cache
-        _cache.pop(tuple([
-            self.name(),
-            self.env['host'],
-            self.env['port'],
-            self.env['user'],
-            self.env['password']]))
+        self.remove_from_cache()
 
     def sqlexec(self, sql):
         with self.conn.cursor() as curr:
@@ -97,36 +97,25 @@ class MySQLTransport(Transport):
 
 
 class SSHTransport(Transport):
-    def __init__(self, host, port, login, password):
-        self.env = dict(
-            hostname=host,
-            port=port,
-            username=login,
-            password=password)
-        self.conn = paramiko.SSHClient()
-        self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.connect()
-
     def name(self):
         return 'SSH'
 
     def connect(self):
+        self.conn = paramiko.SSHClient()
+        self.conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.conn.connect(**self.env)
+            self.conn.connect(hostname=self.host,
+                              port=self.port,
+                              username=self.user,
+                              password=self.password)
         except paramiko.ssh_exception.AuthenticationException:
-            raise AuthenticationError(self.env['username'], self.env['password'])
+            raise AuthenticationError(self.user, self.password)
         except Exception:
-            raise TransportConnectionError(self.env['hostname'], self.env['port'])
+            raise TransportConnectionError(self.host, self.port)
 
     def close(self):
         self.conn.close()
-        global _cache
-        _cache.pop(tuple([
-            self.name(),
-            self.env['hostname'],
-            self.env['port'],
-            self.env['username'],
-            self.env['password']]))
+        self.remove_from_cache()
 
     def execute(self, command):
         stdin, stdout, stderr = self.conn.exec_command(command)
@@ -145,16 +134,28 @@ class SSHTransport(Transport):
         return data
 
 
+class WMITransport(Transport):
+    def name(self):
+        return 'WMI'
+
+    def connect(self):
+        pass
+
+    def close(self):
+        pass
+
+
 _TRANSPORTS = {
     'SSH': SSHTransport,
-    'MySQL': MySQLTransport
+    'MySQL': MySQLTransport,
+    'WMI': WMITransport
     }
 
 
 class TransportConfig(NamedTuple):
     host: str
     port: int
-    login: str
+    user: str
     password: str
     environment: dict
 
@@ -171,7 +172,7 @@ def get_transport_config(transport_name):
     return TransportConfig(
             host=_raw_conf['host'],
             port=_raw_conf['transports'][transport_name]['port'],
-            login=_raw_conf['transports'][transport_name]['login'],
+            user=_raw_conf['transports'][transport_name]['user'],
             password=_raw_conf['transports'][transport_name]['password'],
             environment=_raw_conf['transports'][transport_name]['environment'])
 
@@ -194,18 +195,18 @@ def close_all_connections():
 def get_transport(transport_name,
                   host=None,
                   port=None,
-                  login=None,
+                  user=None,
                   password=None):
-    if transport_name not in _TRANSPORT_LIST:
+    if transport_name not in _TRANSPORTS.keys():
         raise UnknownTransport(transport_name)
     config = get_transport_config(transport_name)
     host = host or config.host
     port = port or config.port
-    login = login or config.login
+    user = user or config.user
     password = password or config.password
-    args = (transport_name, host, port, login, password)
+    args = (transport_name, host, port, user, password)
     global _cache
     if args in _cache:
         return _cache[args]
-    _cache[args] = _TRANSPORTS[transport_name](host, port, login, password)
+    _cache[args] = _TRANSPORTS[transport_name](host, port, user, password)
     return _cache[args]

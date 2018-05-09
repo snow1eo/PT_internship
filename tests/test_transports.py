@@ -26,7 +26,7 @@ def test_get_mysql_transport_from_params_pass():
     sql = get_transport(transport_name='MySQL',
                         host='localhost',
                         port=port_sql,
-                        login='root',
+                        user='root',
                         password=env_sql['MYSQL_ROOT_PASSWORD'])
     assert isinstance(sql, MySQLTransport)
 
@@ -114,7 +114,7 @@ class TestSSHTransport:
             ssh.execute('wrong_command')
 
     def test_execute_permission_denied_except(self):
-        ssh = get_transport('SSH', login='testuser', password='pass')
+        ssh = get_transport('SSH', user='testuser', password='pass')
         with pytest.raises(TransportError):
             ssh.execute('cat /etc/shadow')
 

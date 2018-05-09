@@ -25,11 +25,11 @@ def render(tpl_path, context):
 
 def get_context():
     Control = namedtuple('Control', 'ID, title, description, requirement, status, error')
-    Transport = namedtuple('Transport', 'name, login, port')
+    Transport = namedtuple('Transport', 'name, user, port')
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
-        transports = [Transport(name, login, port) for name, login, port in
+        transports = [Transport(name, user, port) for name, user, port in
                       curr.execute("SELECT * FROM transport")]
         controls = [Control(ID, title, desc, requir, Status(code).name, error) for
                     ID, title, desc, requir, code, error in
