@@ -58,12 +58,12 @@ def init_database():
                          (id_, params['title'], params['descr'], params['req']))
         curr.execute("""CREATE TABLE IF NOT EXISTS transport(
                         name TEXT PRIMARY KEY,
-                        login TEXT NOT NULL,
+                        user TEXT NOT NULL,
                         port INTEGER NOT NULL)""")
         for transport_name in transport_names:
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (?, ?, ?)",
-                          (transport_name, transport.login, transport.port))
+                          (transport_name, transport.user, transport.port))
         curr.execute("""CREATE TABLE IF NOT EXISTS scanning(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         host TEXT NOT NULL,

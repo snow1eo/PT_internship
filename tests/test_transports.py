@@ -5,7 +5,6 @@ from modules.errors import UnknownTransport, AuthenticationError, SSHFileNotFoun
 from modules.transports import get_transport, get_transport_config, \
     SSHTransport, MySQLTransport
 
-PATH = 'tests'
 WRONG_PORT = -1
 port_ssh = get_transport_config('SSH').port
 port_sql = get_transport_config('MySQL').port
@@ -26,7 +25,7 @@ def test_get_mysql_transport_from_params_pass():
     sql = get_transport(transport_name='MySQL',
                         host='localhost',
                         port=port_sql,
-                        login='root',
+                        user='root',
                         password=env_sql['MYSQL_ROOT_PASSWORD'])
     assert isinstance(sql, MySQLTransport)
 
@@ -43,7 +42,12 @@ def test_get_transport_except():
 
 class TestMySQLTransport:
     def test_connect_pass(self):
-        get_transport('MySQL')
+        sql = get_transport('MySQL')
+        sql.sqlexec('SHOW DATABASES')
+
+    def test_with_connect(self):
+        with get_transport('MySQL') as sql:
+            sql.sqlexec('SHOW DATABASES')
 
     def test_persistent_connection(self):
         assert get_transport('MySQL') is get_transport('MySQL')
@@ -60,10 +64,6 @@ class TestMySQLTransport:
         with pytest.raises(UnknownDatabase):
             sql = get_transport('MySQL')
             sql.connect('wrong_database')
-
-    def test_sqlexec_pass(self):
-        sql = get_transport('MySQL')
-        sql.sqlexec('SHOW DATABASES')
 
     def test_sqlexec_request(self):
         sql = get_transport('MySQL')
@@ -83,7 +83,12 @@ class TestMySQLTransport:
 
 class TestSSHTransport:
     def test_connect_pass(self):
-        get_transport('SSH')
+        ssh = get_transport('SSH')
+        ssh.execute('ls')
+
+    def test_with_connect(self):
+        with get_transport('SSH') as ssh:
+            ssh.execute('ls')
 
     def test_persistent_connection(self):
         assert get_transport('SSH') is get_transport('SSH')
@@ -106,7 +111,7 @@ class TestSSHTransport:
             ssh.execute('wrong_command')
 
     def test_execute_permission_denied_except(self):
-        ssh = get_transport('SSH', login='testuser', password='pass')
+        ssh = get_transport('SSH', user='testuser', password='pass')
         with pytest.raises(TransportError):
             ssh.execute('cat /etc/shadow')
 

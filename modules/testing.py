@@ -2,7 +2,6 @@ from importlib import import_module
 
 from modules.database import add_control, get_tests
 from modules.statuses import Status
-import scripts  # for Windows
 
 
 def run_tests():

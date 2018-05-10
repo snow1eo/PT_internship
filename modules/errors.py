@@ -50,12 +50,12 @@ class SSHFileNotFound(TransportError):
 
 
 class AuthenticationError(TransportConnectionError):
-    def __init__(self, login, password):
-        self.login = login
+    def __init__(self, user, password):
+        self.user = user
         self.password = password
 
     def __str__(self):
-        return 'login: {}, pass: {}'.format(self.login, self.password)
+        return 'user: {}, pass: {}'.format(self.user, self.password)
 
 
 class UnknownTransport(TransportCreationError):
