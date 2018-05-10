@@ -16,8 +16,6 @@ _cache = dict()
 
 
 class Transport(metaclass=ABCMeta):
-    NAME: str
-
     def __init__(self, host, port, user, password):
         self.host = host
         self.port = port
@@ -32,6 +30,11 @@ class Transport(metaclass=ABCMeta):
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
+
+    @property
+    @abstractmethod
+    def NAME(self):
+        pass
 
     @abstractmethod
     def connect(self):
