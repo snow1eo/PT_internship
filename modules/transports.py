@@ -6,6 +6,7 @@ import os.path
 import paramiko
 import pymysql
 
+from modules.wmi_client_wrapper import WmiClientWrapper
 from modules.errors import TransportConnectionError, MySQLError, \
     AuthenticationError, UnknownTransport, UnknownDatabase, \
     RemoteHostCommandError, SSHFileNotFound
@@ -132,9 +133,60 @@ class SSHTransport(Transport):
         return data
 
 
+class WMITransport(Transport):
+    NAME = 'WMI'
+
+    # Так как используем wpapper, коннект не нужен
+    def connect(self):
+        pass
+
+    def close(self):
+        self.remove_from_cache()
+
+    def wmi_exec(self, command):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        return wmic.execute(command)
+
+    def wmi_query(self, request):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        return wmic.query(request)
+
+
+# По заданию нужен отдельный транспорт, однако я думаю, можно было бы
+# и в предыдущий добавить
+class WMIRegistryTransport(Transport):
+    NAME = 'WMIRegistry'
+
+    # Так как используем wpapper, коннект не нужен
+    def connect(self):
+        pass
+
+    def close(self):
+        self.remove_from_cache()
+
+    def get_value(self, hive, path, value_name):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        query = """SELECT * FROM RegistryValueChangeEvent WHERE
+                   Hive = '{hive}' AND KeyPath = '{path}' AND
+                   ValueName = '{value_name}'""".format(
+                        hive=hive, path=path, value_name=value_name)
+        return wmic.query(query)
+
+
 _TRANSPORTS = {
     'SSH': SSHTransport,
-    'MySQL': MySQLTransport
+    'MySQL': MySQLTransport,
+    'WMI': WMITransport,
+    'WMIRegistry': WMIRegistryTransport
     }
 
 
