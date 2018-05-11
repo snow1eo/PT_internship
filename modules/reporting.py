@@ -26,11 +26,14 @@ def render(tpl_path, context):
 def get_context():
     Control = namedtuple('Control', 'ID, title, description, requirement, status, error')
     Transport = namedtuple('Transport', 'name, user, port')
+    Audit = namedtuple('Audit', 'attribute, value')
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
+        audit = [Audit(attribute, value) for attribute, value in
+                 curr.execute("SELECT attribute, value FROM audit WHERE scan_id = ?", (scan_id,))]
         transports = [Transport(name, user, port) for name, user, port in
-                      curr.execute("SELECT * FROM transport")]
+                      curr.execute("SELECT * FROM transport WHERE scan_id = ?", (scan_id,))]
         controls = [Control(ID, title, desc, requir, Status(code).name, error) for
                     ID, title, desc, requir, code, error in
                     curr.execute("""SELECT scandata.id, control.title,
@@ -46,6 +49,7 @@ def get_context():
     statuses_count.update(dict(Counter([control.status for control in controls])))
     return dict(
         host=get_host_name(),
+        audit=audit,
         transports=transports,
         start_time=start_time.strftime(TIME_FORMAT),
         finish_time=finish_time.strftime(TIME_FORMAT),

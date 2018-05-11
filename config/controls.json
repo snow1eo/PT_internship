@@ -3,6 +3,7 @@
         "title": "File '/testfile' exist",
         "descr": "File named 'testfile' exist in the root folder on system.",    
         "req": "File exist",
+        "advice": "This is a test, you don't have to do something",
         "env": {
             "name": "testfile",
             "path": "/"
@@ -12,9 +13,59 @@
         "title": "Database 'test_db' exist",
         "descr": "Database 'test_db' exist on system and has not empty table test_table",
         "req": "Database exist",
+        "advice": "This is a test, you don't have to do something",
         "env": {
             "db_name": "test_db",
             "table_name": "test_table"
         }
+    },
+    "002": {
+        "title": "Контроль учетных записей: Все администраторы работают в режиме одобрения администратором.",
+        "descr": "Данная настройка служит для включения и выключения контроля учетных записей и определяет, должны ли пользователи и администраторы повторно вводить свои учетные данные при попытке выполнить действия по администрированию. Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled).",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Run all administrators in Admin Approval Mode Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра EnableLUA установить значение 0х1 (REG_DWORD).",
+        "env": {}
+    },
+    "003": {
+        "title": "Контроль учетных записей: Обнаружение установки приложений и запрос на повышение прав.",
+        "descr": "Данная настройка определяет, каким образом Windows реагирует на запросы установки приложений. Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled).",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Detect application installations and prompt for elevation Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра EnableInstallerDetection установить значение 0х1 (REG_DWORD).",
+        "env": {}
+    },
+    "004": {
+        "title": "Контроль учетных записей: Переключение к безопасному рабочему столу при выполнении запроса на повышение прав.",
+        "descr": "Данная настройка определяет, будут ли запросы на повышение прав службы контроля учетных записей выводиться на безопасный рабочий стол. Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled).",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Switch to the secure desktop when prompting for elevation Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра PromptOnSecureDesktop установить значение 0х1 (REG_DWORD).",
+        "env": {}
+    },
+    "005": {
+        "title": "Контроль учетных записей: Повышать права для UIAccess-приложений только при установке в безопасных местах.",
+        "descr": "Данная настройка позволяет защитить Windows, разрешая работу с повышенными привилегиями только тем приложениям, которые были установлены в безопасных местах, таких как %ProgramFiles% и %SystemRoot%\\System32. Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled).",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Only elevate UIAccess applications that are installed in secure locations Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра EnableSecureUIAPaths установить значение 0х1 (REG_DWORD).",
+        "env": {}
+    },
+    "006": {
+        "title": "Контроль учетных записей: При сбоях записи в файл или реестр виртуализация в размещение пользователя.",
+        "descr": "Данная настройка определяет, будет ли Windows применять механизм виртуализации файловой системы и реестра для перенаправления записей в расположение пользователя в ситуациях, когда приложение, не имеющее соответствующих прав, пытается осуществить запись в защищенную область (например, %SYSTEMROOT%). Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled).",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Включено (Enabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Virtualize file and registry write failures to per-user locations Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра EnableVirtualization установить значение 0х1 (REG_DWORD).",
+        "env": {}
+    },
+    "007": {
+        "title": "Контроль учетных записей: Разрешить UIAccess-приложениям запрашивать повышение прав, не используя безопасный рабочий стол.",
+        "descr": "Данная настройка определяет, разрешается ли приложению запрашивать повышение прав, не используя безопасный рабочий стол. Для всех профилей рекомендуемое значение этого параметра - Отключено (Disabled)",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Отключено (Disabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Allow UIAccess applications to prompt for elevation without using the secure desktop Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра EnableUIADesktopToggle установить значение 0х1 (REG_DWORD).",
+        "env": {}
+    },
+    "008": {
+        "title": "Контроль учетных записей: Режим одобрения администратором для встроенной учетной записи администратора.",
+        "descr": "Данная настройка определяет, используется ли режим одобрения администратором для встроенной учетной записи администратора. Для всех профилей рекомендуемое значение этого параметра - Включен (Enabled).",
+        "req": "Настройка активирована",
+        "advice": "Для всех профилей рекомендуемое значение этого параметра - Включен (Enabled). Чтобы применить рекомендуемые настройки через редактор групповых политик, установите указанное выше значение для следующего параметра: Computer Configuration\\Windows Settings\\Security Settings\\Local Policies\\Security Options\\User Account Control: Admin Approval Mode for the Built-in Administrator account Чтобы применить рекомендуемые настройки через реестр, необходимо в разделе реестра HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System для параметра FilterAdministratorToken установить значение 0х1 (REG_DWORD).",
+        "env": {}
     }
 }

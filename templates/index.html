@@ -20,6 +20,10 @@
     </h1>
     <div>
         <p> System address: {{ host }} </p>
+        <p> System info: </p>
+        {% for info in audit %}
+        <p> {{ info.attribute }}: {{ info.value }}
+        {% endfor %}
         <br> Transports: </br>
         {% for transport in transports %}
         <p> {{ transport.name }}: </p>

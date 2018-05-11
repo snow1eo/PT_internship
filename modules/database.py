@@ -59,7 +59,9 @@ def init_database():
         curr.execute("""CREATE TABLE IF NOT EXISTS transport(
                         name TEXT PRIMARY KEY,
                         user TEXT NOT NULL,
-                        port INTEGER NOT NULL)""")
+                        port INTEGER NOT NULL,
+                        scan_id INTEGER NOT NULL,
+                        FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
         for transport_name in transport_names:
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (?, ?, ?)",
@@ -77,6 +79,12 @@ def init_database():
                         scan_id INTEGER NOT NULL,
                         FOREIGN KEY (ctrl_id) REFERENCES control(id),
                         FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
+        curr.execute("""CREATE TABLE IF NOT EXISTS audit(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        attribute TEXT,
+                        value TEXT,
+                        scan_id INTEGER NOT NULL,
+                        FOREIGN KEY (scan_id) REFERENCES scanning(id)""")
 
 
 def reset_database():

@@ -134,7 +134,8 @@ class SSHTransport(Transport):
 
 _TRANSPORTS = {
     'SSH': SSHTransport,
-    'MySQL': MySQLTransport
+    'MySQL': MySQLTransport,
+    'SNMP': SNMPTransort
     }
 
 
