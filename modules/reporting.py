@@ -33,7 +33,7 @@ def get_context():
         audit = [Audit(attribute, value) for attribute, value in
                  curr.execute("SELECT attribute, value FROM audit WHERE scan_id = ?", (scan_id,))]
         transports = [Transport(name, user, port) for name, user, port in
-                      curr.execute("SELECT * FROM transport WHERE scan_id = ?", (scan_id,))]
+                      curr.execute("SELECT name, user, port FROM transport WHERE scan_id = ?", (scan_id,))]
         controls = [Control(ID, title, desc, requir, Status(code).name, error) for
                     ID, title, desc, requir, code, error in
                     curr.execute("""SELECT scandata.id, control.title,

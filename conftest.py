@@ -15,12 +15,7 @@ port_sql = get_transport_config('MySQL').port
 env_sql = get_transport_config('MySQL').environment
 port_snmp = get_transport_config('SNMP').port
 env_snmp = get_transport_config('SNMP').environment
-PORT_DEB_SSH = 23022
 containers_env = {
-    'ubuntu_sshd': {
-        'name': 'cont_ubuntu_sshd',
-        'ports': {'22/tcp': port_ssh}
-    },
     'mariadb': {
         'name': 'mariadb',
         'ports': {'3306/tcp': ('127.0.0.1', port_sql)},
@@ -29,7 +24,7 @@ containers_env = {
     'debian-snmp': {
         'name': 'debian-snmp',
         'ports': {'161/udp': port_snmp,
-                  '22/tcp': PORT_DEB_SSH}
+                  '22/tcp': port_ssh}
     }
 }
 

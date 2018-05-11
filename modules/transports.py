@@ -5,6 +5,7 @@ from typing import NamedTuple
 import os.path
 import paramiko
 import pymysql
+#from pysnmp.hlapi import 
 
 from modules.errors import TransportConnectionError, MySQLError, \
     AuthenticationError, UnknownTransport, UnknownDatabase, \
@@ -132,10 +133,24 @@ class SSHTransport(Transport):
         return data
 
 
+class SNMPTransport(Transport):
+    NAME = 'SNMP'
+
+    def connect(self):
+        pass
+
+    def close(self):
+        pass
+
+    def get_snmpdata(self):
+        pass
+
+
+
 _TRANSPORTS = {
     'SSH': SSHTransport,
     'MySQL': MySQLTransport,
-    'SNMP': SNMPTransort
+    'SNMP': SNMPTransport
     }
 
 

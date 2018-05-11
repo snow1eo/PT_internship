@@ -110,11 +110,6 @@ class TestSSHTransport:
         with pytest.raises(TransportError):
             ssh.execute('wrong_command')
 
-    def test_execute_permission_denied_except(self):
-        ssh = get_transport('SSH', user='testuser', password='pass')
-        with pytest.raises(TransportError):
-            ssh.execute('cat /etc/shadow')
-
     def test_get_file_pass(self):
         ssh = get_transport('SSH')
         assert isinstance(ssh.get_file('/etc/passwd'), bytes)

@@ -44,7 +44,6 @@ def init_database():
     if os.path.exists(DB_NAME):
         return
     controls = get_controls()
-    transport_names = get_transport_names()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("""PRAGMA foreign_keys = ON""")
@@ -57,15 +56,12 @@ def init_database():
             curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)",
                          (id_, params['title'], params['descr'], params['req']))
         curr.execute("""CREATE TABLE IF NOT EXISTS transport(
-                        name TEXT PRIMARY KEY,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT,
                         user TEXT NOT NULL,
                         port INTEGER NOT NULL,
                         scan_id INTEGER NOT NULL,
                         FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
-        for transport_name in transport_names:
-            transport = get_transport_config(transport_name)
-            curr.execute("INSERT INTO transport VALUES (?, ?, ?)",
-                          (transport_name, transport.user, transport.port))
         curr.execute("""CREATE TABLE IF NOT EXISTS scanning(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         host TEXT NOT NULL,
@@ -84,7 +80,7 @@ def init_database():
                         attribute TEXT,
                         value TEXT,
                         scan_id INTEGER NOT NULL,
-                        FOREIGN KEY (scan_id) REFERENCES scanning(id)""")
+                        FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
 
 
 def reset_database():
@@ -108,10 +104,16 @@ def add_control(ctrl_id, status, error):
 
 def init_scanning():
     init_database()
+    transport_names = get_transport_names()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("INSERT INTO scanning VALUES (NULL, ?, ?, NULL)",
                      (get_host_name(), str(datetime.now())))
+        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
+        for transport_name in transport_names:
+            transport = get_transport_config(transport_name)
+            curr.execute("INSERT INTO transport VALUES (NULL, ?, ?, ?, ?)",
+                          (transport_name, transport.user, transport.port, scan_id))
 
 
 def set_finish_time():
