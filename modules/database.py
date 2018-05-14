@@ -12,6 +12,7 @@ CFG_NAME = os.path.join('config', 'controls.json')
 
 
 _controls = None
+_initialized = False
 
 
 def get_tests():
@@ -84,7 +85,9 @@ def init_database():
 
 
 def reset_database():
+    global _initialized
     global _controls
+    _initialized = False
     _controls = None
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
@@ -103,6 +106,9 @@ def add_control(ctrl_id, status, error):
 
 
 def init_scanning():
+    global _initialized
+    if _initialized:
+        return
     init_database()
     transport_names = get_transport_names()
     with sqlite3.connect(DB_NAME) as db:
@@ -114,6 +120,8 @@ def init_scanning():
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (NULL, ?, ?, ?, ?)",
                           (transport_name, transport.user, transport.port, scan_id))
+    _initialized = True
+
 
 
 def set_finish_time():

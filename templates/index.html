@@ -22,9 +22,10 @@
         <p> System address: {{ host }} </p>
         <p> System info: </p>
         {% for info in audit %}
-        <p> {{ info.attribute }}: {{ info.value }}
+        <p> {{ info.attribute }}: {{ info.value }} </p>
         {% endfor %}
-        <br> Transports: </br>
+        <br>
+        <p> Transports: </p>
         {% for transport in transports %}
         <p> {{ transport.name }}: </p>
         <p> Port: {{ transport.port }} </p>

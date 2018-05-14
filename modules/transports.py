@@ -5,11 +5,13 @@ from typing import NamedTuple
 import os.path
 import paramiko
 import pymysql
-#from pysnmp.hlapi import 
+from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, \
+    UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
 
 from modules.errors import TransportConnectionError, MySQLError, \
     AuthenticationError, UnknownTransport, UnknownDatabase, \
-    RemoteHostCommandError, SSHFileNotFound
+    RemoteHostCommandError, SSHFileNotFound, SNMPStatusError, \
+    SNMPError
 
 ENV_FILE = os.path.join('config', 'env.json')
 _raw_conf = None
@@ -17,11 +19,12 @@ _cache = dict()
 
 
 class Transport(metaclass=ABCMeta):
-    def __init__(self, host, port, user, password):
+    def __init__(self, host, port, user, password, environment):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
+        self.env = environment
         self.conn = None
         self.connect()
 
@@ -59,13 +62,13 @@ class MySQLTransport(Transport):
     NAME = 'MySQL'
 
     def connect(self, database=None):
-        self.database = database
+        self.env['MYSQL_DATABASE'] = database
         try:
             self.conn = pymysql.connect(host=self.host,
                                         port=self.port,
                                         user=self.user,
                                         password=self.password,
-                                        database=self.database,
+                                        database=self.env['MYSQL_DATABASE'],
                                         charset='utf8',
                                         cursorclass=pymysql.cursors.DictCursor,
                                         unix_socket=False)
@@ -123,6 +126,9 @@ class SSHTransport(Transport):
             raise RemoteHostCommandError(err)
         return stdin, stdout, stderr
 
+    def execute_show(self, command):
+        return self.execute(command)[1].read().decode()
+
     def get_file(self, filename):
         sftp = self.conn.open_sftp()
         try:
@@ -136,15 +142,36 @@ class SSHTransport(Transport):
 class SNMPTransport(Transport):
     NAME = 'SNMP'
 
+    # This transport connect when request is sent
     def connect(self):
         pass
 
     def close(self):
         pass
 
-    def get_snmpdata(self):
-        pass
-
+    def get_snmpdata(self, oids):
+        result = dict()
+        if isinstance(oids, str):
+            oids = (oids,)
+        for oid in oids:
+            errorIndication, errorStatus, errorIndex, varBinds = next(
+                getCmd(
+                    SnmpEngine(),
+                    CommunityData(self.env['community'], mpModel=0),
+                    UdpTransportTarget((self.host, self.port)),
+                    ContextData(),
+                    ObjectType(ObjectIdentity('SNMPv2-MIB', oid, 0)))
+                )
+            if errorIndication:
+                raise SNMPError(errorIndication)
+            elif errorStatus:
+                raise SNMPStatusError(errorStatus.prettyPrint(),
+                        errorIndex and varBinds[int(errorIndex)-1][0] or '?')
+            else:
+                for varBind in varBinds:
+                    result.update(
+                        {oid: varBind[1].prettyPrint()})  
+        return result
 
 
 _TRANSPORTS = {
@@ -198,7 +225,8 @@ def get_transport(transport_name,
                   host=None,
                   port=None,
                   user=None,
-                  password=None):
+                  password=None,
+                  environment=None):
     if transport_name not in _TRANSPORTS:
         raise UnknownTransport(transport_name)
     config = get_transport_config(transport_name)
@@ -206,9 +234,11 @@ def get_transport(transport_name,
     port = port or config.port
     user = user or config.user
     password = password or config.password
+    environment = environment or config.environment
     args = (transport_name, host, port, user, password)
     global _cache
     if args in _cache:
         return _cache[args]
-    _cache[args] = _TRANSPORTS[transport_name](host, port, user, password)
+    _cache[args] = _TRANSPORTS[transport_name](
+            host, port, user, password, environment)
     return _cache[args]
