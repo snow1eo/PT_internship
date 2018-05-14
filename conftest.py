@@ -8,33 +8,33 @@ import pytest
 from modules.database import reset_database
 from modules.transports import get_transport_config, close_all_connections
 
-DOCKER_PATH = os.path.join('tests', 'containers')
-TEST_DIR = '.test_tmp'
-port_ssh = get_transport_config('SSH').port
-port_sql = get_transport_config('MySQL').port
-env_sql = get_transport_config('MySQL').environment
-port_snmp = get_transport_config('SNMP').port
-env_snmp = get_transport_config('SNMP').environment
-containers_env = {
-    'mariadb': {
-        'name': 'mariadb',
-        'ports': {'3306/tcp': ('127.0.0.1', port_sql)},
-        'environment': env_sql
-    },
-    'debian-snmp': {
-        'name': 'debian-snmp',
-        'ports': {'161/udp': port_snmp,
-                  '22/tcp': port_ssh}
+
+@pytest.fixture(scope='session')
+def build_docker(request):
+    DOCKER_PATH = os.path.join('tests', 'containers')
+    port_ssh = get_transport_config('SSH').port
+    port_sql = get_transport_config('MySQL').port
+    env_sql = get_transport_config('MySQL').environment
+    port_snmp = get_transport_config('SNMP').port
+    env_snmp = get_transport_config('SNMP').environment
+    containers_env = {
+        'mariadb': {
+            'name': 'mariadb',
+            'ports': {'3306/tcp': ('127.0.0.1', port_sql)},
+            'environment': env_sql
+        },
+        'debian-snmp': {
+            'name': 'debian-snmp',
+            'ports': {'161/udp': port_snmp,
+                      '22/tcp': port_ssh}
+        }
     }
-}
 
-
-def pytest_sessionstart(session):
     client = docker.from_env()
     for container_name, container_env in containers_env.items():
         images = client.images.build(
             path=os.path.join(DOCKER_PATH, container_name),
-            dockerfile='Dockerfile')
+            dockerfile='./Dockerfile')
         try:
             client.containers.run(image=images[0],
                                   detach=True,
@@ -48,14 +48,15 @@ def pytest_sessionstart(session):
     client.containers.prune()
     sleep(15)  # waiting for start containers
 
+    def stop_container():
+        close_all_connections()
+        containers = docker.from_env().containers.list()
+        running_containers = {env['name'] for env in containers_env.values()}
+        for container in containers:
+            if container.name in running_containers:
+                container.stop()
 
-def pytest_sessionfinish(session, exitstatus):
-    close_all_connections()
-    containers = docker.from_env().containers.list()
-    running_containers = {env['name'] for env in containers_env.values()}
-    for container in containers:
-        if container.name in running_containers:
-            container.stop()
+    request.addfinalizer(stop_container)
 
 
 @pytest.fixture()
@@ -78,6 +79,7 @@ def no_transports(monkeypatch):
 
 @pytest.fixture(scope='module')
 def change_dir(request):
+    TEST_DIR = '.test_tmp'
     if os.path.exists(TEST_DIR):
         rmtree(TEST_DIR)
     copytree('.', TEST_DIR)
