@@ -149,10 +149,8 @@ class SNMPTransport(Transport):
     def close(self):
         pass
 
-    def get_snmpdata(self, oids):
+    def get_snmpdata(self, *oids):
         result = dict()
-        if isinstance(oids, str):
-            oids = (oids,)
         for oid in oids:
             errorIndication, errorStatus, errorIndex, varBinds = next(
                 getCmd(
