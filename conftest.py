@@ -11,12 +11,11 @@ from modules.transports import get_transport_config, close_all_connections
 
 @pytest.fixture(scope='session')
 def build_docker(request):
-    DOCKER_PATH = os.path.join('tests', 'containers')
+    docker_path = os.path.join('tests', 'containers')
     port_ssh = get_transport_config('SSH').port
     port_sql = get_transport_config('MySQL').port
     env_sql = get_transport_config('MySQL').environment
     port_snmp = get_transport_config('SNMP').port
-    env_snmp = get_transport_config('SNMP').environment
     containers_env = {
         'mariadb': {
             'name': 'mariadb',
@@ -33,7 +32,7 @@ def build_docker(request):
     client = docker.from_env()
     for container_name, container_env in containers_env.items():
         images = client.images.build(
-            path=os.path.join(DOCKER_PATH, container_name),
+            path=os.path.join(docker_path, container_name),
             dockerfile='./Dockerfile')
         try:
             client.containers.run(image=images[0],
