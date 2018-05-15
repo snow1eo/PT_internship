@@ -80,6 +80,7 @@ def init_database():
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         attribute TEXT,
                         value TEXT,
+                        protocol TEXT,
                         scan_id INTEGER NOT NULL,
                         FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
 

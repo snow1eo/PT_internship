@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from base64 import b64decode
 from collections import namedtuple, Counter
 from datetime import datetime
 
@@ -8,7 +9,7 @@ from weasyprint import HTML, CSS
 
 from modules.database import DB_NAME
 from modules.statuses import Status
-from modules.transports import get_host_name
+from modules.transports import get_host_name, get_transport_names
 
 TEMPLATE_HTML = os.path.join('templates', 'index.html')
 CSS_FILE = os.path.join('templates', 'style.css')
@@ -30,8 +31,10 @@ def get_context():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
-        audit = [Audit(attribute, value) for attribute, value in
-                 curr.execute("SELECT attribute, value FROM audit WHERE scan_id = ?", (scan_id,))]
+        audit = {prot: [Audit(attribute, b64decode(value).decode()) for attribute, value in
+                 curr.execute("""SELECT attribute, value FROM audit
+                                 WHERE scan_id = ? and protocol = ?""", (scan_id, prot))]
+                 for prot in get_transport_names()}
         transports = [Transport(name, user, port) for name, user, port in
                       curr.execute("SELECT name, user, port FROM transport WHERE scan_id = ?", (scan_id,))]
         controls = [Control(ID, title, desc, requir, Status(code).name, error) for

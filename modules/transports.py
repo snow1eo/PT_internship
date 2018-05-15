@@ -1,5 +1,6 @@
 import json
 from abc import ABCMeta, abstractmethod
+from base64 import b64encode
 from typing import NamedTuple
 
 import os.path
@@ -129,6 +130,9 @@ class SSHTransport(Transport):
     def execute_show(self, command):
         return self.execute(command)[1].read().decode()
 
+    def execute_show_b64(self, command):
+        return b64encode(self.execute(command)[1].read()).decode()
+
     def get_file(self, filename):
         sftp = self.conn.open_sftp()
         try:
@@ -142,19 +146,21 @@ class SSHTransport(Transport):
 class SNMPTransport(Transport):
     NAME = 'SNMP'
 
-    # This transport connect when request is sent
     def connect(self):
-        pass
+        try:
+            self.conn = SnmpEngine()
+        except Exception:
+            raise TransportConnectionError(self.host, self.port)
 
     def close(self):
-        pass
+        self.remove_from_cache()
 
     def get_snmpdata(self, *oids):
         result = dict()
         for oid in oids:
             errorIndication, errorStatus, errorIndex, varBinds = next(
                 getCmd(
-                    SnmpEngine(),
+                    self.conn,
                     CommunityData(self.env['community'], mpModel=0),
                     UdpTransportTarget((self.host, self.port)),
                     ContextData(),

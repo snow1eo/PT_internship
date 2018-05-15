@@ -10,7 +10,7 @@ from modules.transports import get_transport_config, close_all_connections
 
 
 @pytest.fixture(scope='session')
-def build_docker(request):
+def run_docker(request):
     docker_path = os.path.join('tests', 'containers')
     port_ssh = get_transport_config('SSH').port
     port_sql = get_transport_config('MySQL').port
