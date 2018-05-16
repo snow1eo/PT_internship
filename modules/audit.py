@@ -2,7 +2,7 @@ import sqlite3
 from base64 import b64encode
 from enum import IntEnum
 
-from modules.database import DB_NAME, get_scan_id
+from modules.database import DB_NAME, get_scan_id, init_scanning
 from modules.errors import SNMPError, SNMPStatusError, TransportConnectionError
 from modules.transports import get_transport
 
@@ -18,6 +18,7 @@ class IfaceStatus(IntEnum):
 
 
 def audit():
+    init_scanning()
     snmp_audit()
     ssh_audit()
 
@@ -37,14 +38,14 @@ def snmp_audit():
             ifaces.append(snmp.get_snmpdata(
                 ifDescr.format(num=i_num),
                 ifOperStatus.format(num=i_num)))
-    except SNMPError:
-        return
-    except SNMPStatusError:
+    # Тут не удалось красиво monkeypatch накинуть, так что AttributeError отлавливается для теста
+    # Некрасиво и не очень удобно, нужно как-то поправить
+    except (TransportConnectionError, SNMPError, SNMPStatusError, AttributeError):
         return
     ifaces = tuple(map(lambda x: [x[0], IfaceStatus(int(x[1])).name], ifaces))
     # TODO some parsing
     # Как это распарсить, если вывод имеет различный формат?
-    # Как вытянуть интерфейсы?
+    # Можно просто свалить в одно поле и считать, что там есть информация о вендоре, ОС и ПО?
     attributes = dict(
         vendor=b64encode('somevendor'.encode()),
         platform=b64encode('someplatform'.encode()),

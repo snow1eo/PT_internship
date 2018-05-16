@@ -5,6 +5,7 @@ from modules.transports import get_transport, close_all_connections
 
 test0 = importlib.import_module('.000_test_file_exist', package='scripts')
 test1 = importlib.import_module('.001_test_db_exist', package='scripts')
+test3 = importlib.import_module('.003_check_dump_for_pass', package='scripts')
 
 
 def test_000_file_exist_1(run_docker):
@@ -53,4 +54,21 @@ def test_001_database_exist_3(run_docker, no_mysql_connections):
 
 
 def test_001_database_exist_4(run_docker, no_transports):
+    assert test1.main()[0] == Status.ERROR and test1.main()[1]
+
+
+def test_003_mem_dump_1(run_docker):
+    # Как, если в этом контейнере он постоянно дампится? Или снова monkeypatch?)
+    pass
+
+
+def test_003_mem_dump_2(run_docker):
+    assert test3.main()[0] == Status.NOT_COMPLIANT
+
+
+def test_003_mem_dump_3(run_docker, no_ssh_connections):
+    assert test3.main()[0] == Status.NOT_APPLICABLE
+
+
+def test_003_mem_dump_4(run_docker, no_transports):
     assert test1.main()[0] == Status.ERROR and test1.main()[1]

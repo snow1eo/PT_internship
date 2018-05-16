@@ -6,6 +6,7 @@ import docker
 import pytest
 
 from modules.database import reset_database
+from modules.errors import TransportConnectionError
 from modules.transports import get_transport_config, close_all_connections
 
 
@@ -72,6 +73,12 @@ def no_ssh_connections(monkeypatch):
 def no_mysql_connections(monkeypatch):
     close_all_connections()
     monkeypatch.delattr('pymysql.connect')
+
+
+@pytest.fixture()
+def no_snmp_connections(monkeypatch):
+    close_all_connections()
+    monkeypatch.delattr('modules.transports.SNMPTransport.get_snmpdata')
 
 
 @pytest.fixture()

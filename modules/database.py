@@ -101,8 +101,10 @@ def init_database():
 def reset_database():
     global _initialized
     global _controls
+    global _scan_id
     _initialized = False
     _controls = None
+    _scan_id = None
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
     init_database()

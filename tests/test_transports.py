@@ -118,3 +118,12 @@ class TestSSHTransport:
         ssh = get_transport('SSH')
         with pytest.raises(SSHFileNotFound):
             ssh.get_file('/wrong_file')
+
+
+class TestSNMPTransport:
+    def test_connect(self, run_docker):
+        get_transport('SNMP')
+
+    def test_get_snmpdata(self, run_docker):
+        snmp = get_transport('SNMP')
+        assert snmp.get_snmpdata('.1.3.6.1.2.1.1.1.0')
