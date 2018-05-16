@@ -22,6 +22,7 @@
         <p> System address: {{ host }} </p>
         <p> System info: </p>
         {% for protocol, audits in audit.items() if audits %}
+        <br>
         <p> Protocol: {{ protocol }} </p>
         {% for audit in audits %}
         {{ audit.attribute }}: <br>

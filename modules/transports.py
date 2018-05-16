@@ -157,7 +157,7 @@ class SNMPTransport(Transport):
 
     def get_snmpdata(self, *oids):
         # передаю сырой oid, потому что с местными MID не смог разобраться нормально 
-        result = dict()
+        result = list()
         for oid in oids:
             errorIndication, errorStatus, errorIndex, varBinds = next(
                 getCmd(
@@ -174,8 +174,7 @@ class SNMPTransport(Transport):
                         errorIndex and varBinds[int(errorIndex)-1][0] or '?')
             else:
                 for varBind in varBinds:
-                    result.update(
-                        {oid: varBind[1].prettyPrint()})  
+                    result.append(varBind[1].prettyPrint()) 
         return result
 
 

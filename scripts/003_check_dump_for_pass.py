@@ -7,9 +7,10 @@ from modules.errors import TransportConnectionError, RemoteHostCommandError
 from modules.statuses import Status
 from modules.transports import get_transport
 
+TEST_NUM = 3
+
 
 def main():
-    TEST_NUM = 3
     try:
         ssh = get_transport('SSH')
         data = ssh.execute_show('show mem | strings | grep password')
