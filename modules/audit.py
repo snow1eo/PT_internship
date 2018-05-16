@@ -1,8 +1,8 @@
 import sqlite3
 from base64 import b64encode
 
-from modules.database import DB_NAME
-from modules.errors import SNMPError, TransportConnectionError
+from modules.database import DB_NAME, get_scan_id
+from modules.errors import SNMPError, SNMPStatusError, TransportConnectionError
 from modules.transports import get_transport
 
 
@@ -11,9 +11,10 @@ def audit():
     ssh_audit()
 
 def snmp_audit():
+    sysDescr = '.1.3.6.1.2.1.1.1.0'
     try:
         snmp = get_transport('SNMP')
-        sysDescr_data = snmp.get_snmpdata('sysDescr')['sysDescr']
+        sysDescr_data = snmp.get_snmpdata(sysDescr)[sysDescr]
     except SNMPError:
         return
     except SNMPStatusError:
@@ -27,11 +28,10 @@ def snmp_audit():
         software_version=b64encode('v2'.encode()))
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
         curr.execute("PRAGMA foreign_keys = ON")
         for attribute, value in attributes.items():
             curr.execute("INSERT INTO audit VALUES (NULL, ?, ?, ?, ?)",
-                          (attribute, value, 'SNMP', scan_id))
+                          (attribute, value, 'SNMP', get_scan_id()))
 
 
 def ssh_audit():
@@ -43,11 +43,10 @@ def ssh_audit():
     attributes = dict(
         OS=ssh.execute_show_b64('cat /proc/version'),
         Users=ssh.execute_show_b64('cat /etc/passwd'),
-        MACs=ssh.execute_show_b64('ip l'))
+        MACs=ssh.execute_show_b64('ip l'))  # это те MAC, или как-то по-другому нужно смотреть?
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
         curr.execute("PRAGMA foreign_keys = ON")
         for attribute, value in attributes.items():
             curr.execute("INSERT INTO audit VALUES (NULL, ?, ?, ?, ?)",
-                          (attribute, value, 'SSH', scan_id))
+                          (attribute, value, 'SSH', get_scan_id()))

@@ -11,5 +11,5 @@ def run_tests():
             test_mod = import_module('.'+test, package='scripts')
             status, err = test_mod.main()
         except Exception as e_info:
-            status, err = Status.EXCEPTION, e_info
+            status, err = Status.EXCEPTION, str(e_info)
         add_control(id_, status, err)

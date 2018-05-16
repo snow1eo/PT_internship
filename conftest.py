@@ -58,6 +58,10 @@ def run_docker(request):
     request.addfinalizer(stop_container)
 
 
+def pytest_sessionfinish(session, exitstatus):
+    close_all_connections()
+
+
 @pytest.fixture()
 def no_ssh_connections(monkeypatch):
     close_all_connections()

@@ -13,6 +13,7 @@ CFG_NAME = os.path.join('config', 'controls.json')
 
 _controls = None
 _initialized = False
+_scan_id = None
 
 
 def get_tests():
@@ -40,6 +41,16 @@ def check_config():
         raise ConfigError(CFG_NAME)
 
 
+def get_scan_id():
+    global _scan_id
+    if not _scan_id:
+        with sqlite3.connect(DB_NAME) as db:
+            curr = db.cursor()
+            _scan_id = curr.execute("""SELECT seq FROM sqlite_sequence
+                WHERE name = 'scanning'""").fetchone()[0]
+    return _scan_id
+
+
 def init_database():
     check_config()
     if os.path.exists(DB_NAME):
@@ -52,10 +63,12 @@ def init_database():
                         id INTEGER PRIMARY KEY,
                         title TEXT NOT NULL,
                         description TEXT,
-                        requirement)""")
+                        requirement TEXT,
+                        prescription TEXT)""")
         for id_, params in controls.items():
-            curr.execute("INSERT INTO control VALUES (?, ?, ?, ?)",
-                         (id_, params['title'], params['descr'], params['req']))
+            curr.execute("INSERT INTO control VALUES (?, ?, ?, ?, ?)",
+                         (id_, params['title'], params['descr'],
+                            params['req'], params['prescription']))
         curr.execute("""CREATE TABLE IF NOT EXISTS transport(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT,
@@ -100,10 +113,9 @@ def reset_database():
 def add_control(ctrl_id, status, error):
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
         curr.execute("PRAGMA foreign_keys = ON")
         curr.execute("INSERT INTO scandata VALUES (NULL, ?, ?, ?, ?)",
-                     (ctrl_id, status, error, scan_id))
+                     (ctrl_id, status, error, get_scan_id()))
 
 
 def init_scanning():
@@ -116,11 +128,11 @@ def init_scanning():
         curr = db.cursor()
         curr.execute("INSERT INTO scanning VALUES (NULL, ?, ?, NULL)",
                      (get_host_name(), str(datetime.now())))
-        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
+        db.commit()
         for transport_name in transport_names:
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (NULL, ?, ?, ?, ?)",
-                          (transport_name, transport.user, transport.port, scan_id))
+                          (transport_name, transport.user, transport.port, get_scan_id()))
     _initialized = True
 
 
@@ -128,6 +140,5 @@ def init_scanning():
 def set_finish_time():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name = 'scanning'").fetchone()[0]
         curr.execute("UPDATE scanning SET finish = ? WHERE id = ?",
-                     (str(datetime.now()), scan_id))
+                     (str(datetime.now()), get_scan_id()))

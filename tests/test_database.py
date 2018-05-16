@@ -43,9 +43,12 @@ def test_init_database(change_dir, create_new_database):
         assert not curr.execute("""SELECT * FROM scandata""").fetchall()
         # Converting to form to compare
         required_controls = {int(id_): {'title': p['title'], 'descr': p['descr'],
-                            'req': p['req']} for id_, p in get_controls().items()}
-        controls = {id_: {'title': title, 'descr': descr, 'req': req} for
-                id_, title, descr, req in curr.execute("SELECT * FROM control").fetchall()}
+                            'req': p['req'], 'prescription': p['prescription']}
+                            for id_, p in get_controls().items()}
+        controls = {id_: {'title': title, 'descr': descr, 'req': req,
+                          'prescription': presc} for
+                    id_, title, descr, req, presc in
+                    curr.execute("SELECT * FROM control").fetchall()}
         assert controls == required_controls
 
 
@@ -63,6 +66,7 @@ def test_add_control_err_pass(change_dir, create_new_database):
                 "title": "",
                 "descr": "",
                 "req": "",
+                "prescription": "",
                 "env": {}
                 }}
     with open(CFG_NAME, 'w') as f:
@@ -84,6 +88,7 @@ def test_add_control_no_err_pass(change_dir, create_new_database):
                 "title": "",
                 "descr": "",
                 "req": "",
+                "prescription": "",
                 "env": {}
                 }}
     with open(CFG_NAME, 'w') as f:

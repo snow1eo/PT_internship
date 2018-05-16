@@ -7,7 +7,7 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML, CSS
 
-from modules.database import DB_NAME
+from modules.database import DB_NAME, get_scan_id
 from modules.statuses import Status
 from modules.transports import get_host_name, get_transport_names
 
@@ -25,22 +25,23 @@ def render(tpl_path, context):
 
 
 def get_context():
-    Control = namedtuple('Control', 'ID, title, description, requirement, status, error')
+    Control = namedtuple('Control',
+        'ID, title, description, requirement, prescription, status, error')
     Transport = namedtuple('Transport', 'name, user, port')
     Audit = namedtuple('Audit', 'attribute, value')
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
-        scan_id = curr.execute("SELECT seq FROM sqlite_sequence WHERE name='scanning'").fetchone()[0]
+        scan_id = get_scan_id()
         audit = {prot: [Audit(attribute, b64decode(value).decode()) for attribute, value in
                  curr.execute("""SELECT attribute, value FROM audit
                                  WHERE scan_id = ? and protocol = ?""", (scan_id, prot))]
                  for prot in get_transport_names()}
         transports = [Transport(name, user, port) for name, user, port in
                       curr.execute("SELECT name, user, port FROM transport WHERE scan_id = ?", (scan_id,))]
-        controls = [Control(ID, title, desc, requir, Status(code).name, error) for
-                    ID, title, desc, requir, code, error in
+        controls = [Control(ID, title, desc, requir, presc, Status(code).name, error) for
+                    ID, title, desc, requir, presc, code, error in
                     curr.execute("""SELECT scandata.id, control.title,
-                        control.description, control.requirement,
+                        control.description, control.requirement, control.prescription,
                         scandata.status, scandata.error FROM scandata INNER JOIN
                         control ON scandata.ctrl_id = control.id AND
                         scandata.scan_id = ?""", (scan_id,)).fetchall()]

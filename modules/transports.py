@@ -156,6 +156,7 @@ class SNMPTransport(Transport):
         self.remove_from_cache()
 
     def get_snmpdata(self, *oids):
+        # передаю сырой oid, потому что с местными MID не смог разобраться нормально 
         result = dict()
         for oid in oids:
             errorIndication, errorStatus, errorIndex, varBinds = next(
@@ -164,7 +165,7 @@ class SNMPTransport(Transport):
                     CommunityData(self.env['community'], mpModel=0),
                     UdpTransportTarget((self.host, self.port)),
                     ContextData(),
-                    ObjectType(ObjectIdentity('SNMPv2-MIB', oid, 0)))
+                    ObjectType(ObjectIdentity(oid)))
                 )
             if errorIndication:
                 raise SNMPError(errorIndication)
