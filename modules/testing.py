@@ -8,7 +8,7 @@ def run_tests():
     tests = get_tests()
     for id_, test in tests.items():
         try:
-            test_mod = import_module('.'+test, package='scripts')
+            test_mod = import_module('.' + test, package='scripts')
             status, err = test_mod.main()
         except Exception as e_info:
             status, err = Status.EXCEPTION, str(e_info)

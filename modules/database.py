@@ -10,7 +10,6 @@ from modules.transports import get_transport_config, get_transport_names, get_ho
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
 
-
 _controls = None
 _initialized = False
 _scan_id = None
@@ -19,10 +18,10 @@ _scan_id = None
 def get_tests():
     check_config()
     return {
-                re.findall(r'\d+', test)[0]: test.strip('.py')
-                for test in os.listdir('scripts')
-                if re.match(r'\d+_.+\.py', test)
-           }
+        re.findall(r'\d+', test)[0]: test.strip('.py')
+        for test in os.listdir('scripts')
+        if re.match(r'\d+_.+\.py', test)
+    }
 
 
 def get_controls():
@@ -68,7 +67,7 @@ def init_database():
         for id_, params in controls.items():
             curr.execute("INSERT INTO control VALUES (?, ?, ?, ?, ?)",
                          (id_, params['title'], params['descr'],
-                            params['req'], params['prescription']))
+                          params['req'], params['prescription']))
         curr.execute("""CREATE TABLE IF NOT EXISTS transport(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT,
@@ -134,9 +133,8 @@ def init_scanning():
         for transport_name in transport_names:
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (NULL, ?, ?, ?, ?)",
-                          (transport_name, transport.user, transport.port, get_scan_id()))
+                         (transport_name, transport.user, transport.port, get_scan_id()))
     _initialized = True
-
 
 
 def set_finish_time():

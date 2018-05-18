@@ -34,7 +34,7 @@ def snmp_audit():
         snmp = get_transport('SNMP')
         sysDescr_data = snmp.get_snmpdata(sysDescr)[0]
         iface_number = int(snmp.get_snmpdata(ifNumber)[0])
-        for i_num in range(1, iface_number+1):
+        for i_num in range(1, iface_number + 1):
             ifaces.append(snmp.get_snmpdata(
                 ifDescr.format(num=i_num),
                 ifOperStatus.format(num=i_num)))
@@ -52,13 +52,13 @@ def snmp_audit():
         software_version=b64encode('v2'.encode()),
         interfaces=b64encode(
             '\n'.join(["Ifnterface: {}, status: {}".format(*iface)
-                for iface in ifaces]).encode()))
+                       for iface in ifaces]).encode()))
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
         for attribute, value in attributes.items():
             curr.execute("INSERT INTO audit VALUES (NULL, ?, ?, ?, ?)",
-                          (attribute, value, 'SNMP', get_scan_id()))
+                         (attribute, value, 'SNMP', get_scan_id()))
 
 
 def ssh_audit():
@@ -76,4 +76,4 @@ def ssh_audit():
         curr.execute("PRAGMA foreign_keys = ON")
         for attribute, value in attributes.items():
             curr.execute("INSERT INTO audit VALUES (NULL, ?, ?, ?, ?)",
-                          (attribute, value, 'SSH', get_scan_id()))
+                         (attribute, value, 'SSH', get_scan_id()))

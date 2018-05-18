@@ -6,7 +6,6 @@ import docker
 import pytest
 
 from modules.database import reset_database
-from modules.errors import TransportConnectionError
 from modules.transports import get_transport_config, close_all_connections
 
 

@@ -26,14 +26,14 @@ def render(tpl_path, context):
 
 def get_context():
     Control = namedtuple('Control',
-        'ID, title, description, requirement, prescription, status, error')
+                         'ID, title, description, requirement, prescription, status, error')
     Transport = namedtuple('Transport', 'name, user, port')
     Audit = namedtuple('Audit', 'attribute, value')
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = get_scan_id()
         audit = {prot: [Audit(attribute, b64decode(value).decode()) for attribute, value in
-                 curr.execute("""SELECT attribute, value FROM audit
+                        curr.execute("""SELECT attribute, value FROM audit
                                  WHERE scan_id = ? and protocol = ?""", (scan_id, prot))]
                  for prot in get_transport_names()}
         transports = [Transport(name, user, port) for name, user, port in
@@ -46,8 +46,8 @@ def get_context():
                         control ON scandata.ctrl_id = control.id AND
                         scandata.scan_id = ?""", (scan_id,)).fetchall()]
         start_time, finish_time = map(
-                lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f"),
-                curr.execute("""SELECT start, finish FROM
+            lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f"),
+            curr.execute("""SELECT start, finish FROM
                     scanning WHERE id = ?""", (scan_id,)).fetchone())
     statuses_count = {Status(code).name: 0 for code in range(1, 6)}
     statuses_count.update(dict(Counter([control.status for control in controls])))
@@ -57,7 +57,7 @@ def get_context():
         transports=transports,
         start_time=start_time.strftime(TIME_FORMAT),
         finish_time=finish_time.strftime(TIME_FORMAT),
-        duration=finish_time-start_time,
+        duration=finish_time - start_time,
         total_controls=len(controls),
         controls=controls,
         statuses=statuses_count)

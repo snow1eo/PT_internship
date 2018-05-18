@@ -166,15 +166,15 @@ class SNMPTransport(Transport):
                     UdpTransportTarget((self.host, self.port)),
                     ContextData(),
                     ObjectType(ObjectIdentity(oid)))
-                )
+            )
             if errorIndication:
                 raise SNMPError(errorIndication)
             elif errorStatus:
                 raise SNMPStatusError(errorStatus.prettyPrint(),
-                        errorIndex and varBinds[int(errorIndex)-1][0] or '?')
+                                      errorIndex and varBinds[int(errorIndex) - 1][0] or '?')
             else:
                 for varBind in varBinds:
-                    result.append(varBind[1].prettyPrint()) 
+                    result.append(varBind[1].prettyPrint())
         return result
 
 
@@ -182,7 +182,7 @@ _TRANSPORTS = {
     'SSH': SSHTransport,
     'MySQL': MySQLTransport,
     'SNMP': SNMPTransport
-    }
+}
 
 
 class TransportConfig(NamedTuple):
@@ -203,11 +203,11 @@ def _load_config():
 def get_transport_config(transport_name):
     _load_config()
     return TransportConfig(
-            host=_raw_conf['host'],
-            port=_raw_conf['transports'][transport_name]['port'],
-            user=_raw_conf['transports'][transport_name]['user'],
-            password=_raw_conf['transports'][transport_name]['password'],
-            environment=_raw_conf['transports'][transport_name]['environment'])
+        host=_raw_conf['host'],
+        port=_raw_conf['transports'][transport_name]['port'],
+        user=_raw_conf['transports'][transport_name]['user'],
+        password=_raw_conf['transports'][transport_name]['password'],
+        environment=_raw_conf['transports'][transport_name]['environment'])
 
 
 def get_transport_names():
@@ -244,5 +244,5 @@ def get_transport(transport_name,
     if args in _cache:
         return _cache[args]
     _cache[args] = _TRANSPORTS[transport_name](
-            host, port, user, password, environment)
+        host, port, user, password, environment)
     return _cache[args]
