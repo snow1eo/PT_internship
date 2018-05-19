@@ -20,8 +20,7 @@ def get_tests():
     check_config()
     return {
         re.findall(r'\d+', test)[0]: test.strip('.py')
-        for test in os.listdir('scripts')
-        if re.match(r'\d+_.+\.py', test)
+        for test in os.listdir('scripts') if re.match(r'\d+_.+\.py', test)
     }
 
 
@@ -35,8 +34,7 @@ def get_controls():
 
 def check_config():
     test_nums = [int(re.findall(r'\d+', test)[0]) for test
-                 in os.listdir('scripts')
-                 if re.match(r'\d+_.+\.py', test)]
+                 in os.listdir('scripts') if re.match(r'\d+_.+\.py', test)]
     cfg_nums = set(map(int, get_controls().keys()))
     if not set(test_nums).issubset(cfg_nums):
         raise ConfigError(CFG_NAME)
@@ -135,10 +133,8 @@ def init_scanning():
         for transport_name in transport_names:
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (NULL, ?, ?, ?, ?)",
-                         (transport_name,
-                          transport.user,
-                          transport.port,
-                          get_scan_id()))
+                         (transport_name, transport.user,
+                          transport.port, get_scan_id()))
     _initialized = True
 
 
