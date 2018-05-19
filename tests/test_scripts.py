@@ -93,9 +93,8 @@ def test_002_permissions_4(run_docker, no_transports):
     assert test2.main()[0] == Status.ERROR and test1.main()[1]
 
 
-def test_003_mem_dump_1(run_docker):
-    # Как, если в этом контейнере он постоянно дампится? Или снова monkeypatch?)
-    pass
+def test_003_mem_dump_1(run_docker, no_ssh_execute):
+    assert test3.main()[0] == Status.COMPLIANT
 
 
 def test_003_mem_dump_2(run_docker):

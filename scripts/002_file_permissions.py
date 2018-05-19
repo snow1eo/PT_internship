@@ -7,8 +7,13 @@ from modules.transports import get_transport
 def main():
     try:
         env = get_controls()['002']['env']
+        print()
+        print('here')
         ssh = get_transport('SSH')
+        print('here')
         data = ssh.execute_show("ls -la '{filename}'".format(**env))
+        print(data)
+        print('there')
         if not data:
             return Status.NOT_APPLICABLE, 'File not found'
         else:
