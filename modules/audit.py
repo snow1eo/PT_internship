@@ -1,5 +1,5 @@
+import re
 import sqlite3
-from base64 import b64encode
 from enum import IntEnum
 
 from modules.database import DB_NAME, get_scan_id, init_scanning
@@ -47,12 +47,11 @@ def snmp_audit():
     # Как это распарсить, если вывод имеет различный формат?
     # Можно просто свалить в одно поле и считать, что там есть информация о вендоре, ОС и ПО?
     attributes = dict(
-        vendor=b64encode('somevendor'.encode()),
-        platform=b64encode('someplatform'.encode()),
-        software_version=b64encode('v2'.encode()),
-        interfaces=b64encode(
-            '\n'.join(["Ifnterface: {}, status: {}".format(*iface)
-                       for iface in ifaces]).encode()))
+        vendor='somevendor',
+        platform='someplatform',
+        software_version='v2',
+        interfaces='\n'.join(["Ifnterface: {}, status: {}".format(*iface)
+                              for iface in ifaces]))
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
@@ -68,12 +67,28 @@ def ssh_audit():
         return
     # Как что-то ещё определить?
     attributes = dict(
-        OS=ssh.execute_show_b64('cat /proc/version'),
-        Users=ssh.execute_show_b64('cat /etc/passwd'),
-        MACs=ssh.execute_show_b64('ip l'))  # это те MAC, или как-то по-другому нужно смотреть?
+        OS=ssh.execute_show('cat /proc/version'),
+        Users=ssh.execute_show('cat /etc/passwd'),
+        MACs=ssh.execute_show('ip l'),
+        Packages=get_packages(ssh))  # это те MAC, или как-то по-другому нужно смотреть?
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
         for attribute, value in attributes.items():
             curr.execute("INSERT INTO audit VALUES (NULL, ?, ?, ?, ?)",
                          (attribute, value, 'SSH', get_scan_id()))
+
+
+def get_packages(ssh):
+    try:
+        pkgs = re.findall(r'ii\s+(\S+)\s+(\S+)',
+                          ssh.execute_show('dpkg -l'))
+        return '\n'.join(['{} {}'.format(*p) for p in pkgs])
+    except RemoteHostCommandError:
+        pass
+    try:
+        pkgs = re.findall(r'(\S+)-(\S+)',
+                          ssh.execute_show('rpm -qa'))
+        return '\n'.join(['{} {}'.format(*p) for p in pkgs])
+    except RemoteHostCommandError:
+        pass

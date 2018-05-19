@@ -1,6 +1,5 @@
 import os
 import sqlite3
-from base64 import b64decode
 from collections import namedtuple, Counter
 from datetime import datetime
 
@@ -32,7 +31,7 @@ def get_context():
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         scan_id = get_scan_id()
-        audit = {prot: [Audit(attribute, b64decode(value).decode()) for attribute, value in
+        audit = {prot: [Audit(attribute, value) for attribute, value in
                         curr.execute("""SELECT attribute, value FROM audit
                                  WHERE scan_id = ? and protocol = ?""", (scan_id, prot))]
                  for prot in get_transport_names()}

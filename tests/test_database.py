@@ -11,9 +11,9 @@ from modules.database import CFG_NAME, DB_NAME, check_config, reset_database, \
 
 REQUIRED_TABLES = frozenset({'transport', 'control', 'scandata',
                              'scanning', 'sqlite_sequence', 'audit'})
-TEST_NUM_PASS = 200   # any value for pass test
-TEST_NUM_ERR = 404    # any value, which doesn't exist in DB
-TEST_STATUS = 3       # any value for test
+TEST_NUM_PASS = 200  # any value for pass test
+TEST_NUM_ERR = 404  # any value, which doesn't exist in DB
+TEST_STATUS = 3  # any value for test
 ERROR = 'some error message'
 
 
@@ -38,13 +38,13 @@ def test_init_database(change_dir, create_new_database):
         curr.execute("SELECT name FROM sqlite_master where type = 'table'")
         tables = curr.fetchall()
         tables = list(map(list, tables))  # Converting a list
-        tables = set(sum(tables, []))     # to a linear set
+        tables = set(sum(tables, []))  # to a linear set
         assert tables == REQUIRED_TABLES
         assert not curr.execute("""SELECT * FROM scandata""").fetchall()
         # Converting to form to compare
         required_controls = {int(id_): {'title': p['title'], 'descr': p['descr'],
-                            'req': p['req'], 'prescription': p['prescription']}
-                            for id_, p in get_controls().items()}
+                                        'req': p['req'], 'prescription': p['prescription']}
+                             for id_, p in get_controls().items()}
         controls = {id_: {'title': title, 'descr': descr, 'req': req,
                           'prescription': presc} for
                     id_, title, descr, req, presc in
@@ -62,13 +62,13 @@ def test_set_finish_time(change_dir, create_new_database):
 
 def test_add_control_err_pass(change_dir, create_new_database):
     controls = {
-            str(TEST_NUM_PASS): {
-                "title": "",
-                "descr": "",
-                "req": "",
-                "prescription": "",
-                "env": {}
-                }}
+        str(TEST_NUM_PASS): {
+            "title": "",
+            "descr": "",
+            "req": "",
+            "prescription": "",
+            "env": {}
+        }}
     with open(CFG_NAME, 'w') as f:
         json.dump(controls, f)
     # очистка папки scripts для корректности конфига
@@ -84,13 +84,13 @@ def test_add_control_err_pass(change_dir, create_new_database):
 
 def test_add_control_no_err_pass(change_dir, create_new_database):
     controls = {
-            str(TEST_NUM_PASS): {
-                "title": "",
-                "descr": "",
-                "req": "",
-                "prescription": "",
-                "env": {}
-                }}
+        str(TEST_NUM_PASS): {
+            "title": "",
+            "descr": "",
+            "req": "",
+            "prescription": "",
+            "env": {}
+        }}
     with open(CFG_NAME, 'w') as f:
         json.dump(controls, f)
     # очистка папки scripts для корректности конфига

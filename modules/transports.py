@@ -1,6 +1,5 @@
 import json
 from abc import ABCMeta, abstractmethod
-from base64 import b64encode
 from typing import NamedTuple
 
 import os.path
@@ -129,9 +128,6 @@ class SSHTransport(Transport):
 
     def execute_show(self, command):
         return self.execute(command)[1].read().decode()
-
-    def execute_show_b64(self, command):
-        return b64encode(self.execute(command)[1].read()).decode()
 
     def get_file(self, filename):
         sftp = self.conn.open_sftp()

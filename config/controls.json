@@ -5,8 +5,7 @@
         "req": "File exist",
         "prescription": "This is a test, you don't have to do something",
         "env": {
-            "name": "testfile",
-            "path": "/"
+            "filename": "/testfile"
         }
     },
     "001": {
@@ -17,6 +16,16 @@
         "env": {
             "db_name": "test_db",
             "table_name": "test_table"
+        }
+    },
+    "002": {
+        "title": "Permissions checking",
+        "descr": "Checking file for right permissions",
+        "req": "Permissions are right",
+        "prescription": "You should set right permissions using command 'chmod'",
+        "env": {
+            "filename": "/etc/shadow",
+            "permissions": "-rw-------"
         }
     },
     "003": {

@@ -27,6 +27,6 @@ def main():
                              ("Found credentials: {}: {}".format(login, password), TEST_NUM))
             return Status.NOT_COMPLIANT, None
     except (TransportConnectionError, RemoteHostCommandError):
-        return Status.NOT_APPLICABLE, None
+        return Status.NOT_APPLICABLE, 'No connection'
     except Exception as e_info:
         return Status.ERROR, str(e_info)
