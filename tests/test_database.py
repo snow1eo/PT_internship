@@ -42,13 +42,21 @@ def test_init_database(change_dir, create_new_database):
         assert tables == REQUIRED_TABLES
         assert not curr.execute("""SELECT * FROM scandata""").fetchall()
         # Converting to form to compare
-        required_controls = {int(id_): {'title': p['title'], 'descr': p['descr'],
-                                        'req': p['req'], 'prescription': p['prescription']}
-                             for id_, p in get_controls().items()}
-        controls = {id_: {'title': title, 'descr': descr, 'req': req,
-                          'prescription': presc} for
-                    id_, title, descr, req, presc in
-                    curr.execute("SELECT * FROM control").fetchall()}
+        required_controls = {
+            int(id_): dict(
+                title=p['title'],
+                descr=p['descr'],
+                req=p['req'],
+                prescription=p['prescription'])
+            for id_, p in get_controls().items()}
+        controls = {
+            id_: dict(
+                title=title,
+                descr=descr,
+                req=req,
+                prescription=presc)
+            for id_, title, descr, req, presc in
+            curr.execute("SELECT * FROM control").fetchall()}
         assert controls == required_controls
 
 
