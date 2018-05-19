@@ -89,9 +89,9 @@ def no_transports(monkeypatch):
 @pytest.fixture()
 def no_ssh_execute(monkeypatch):
     monkeypatch.setattr('modules.transports.SSHTransport.execute_show',
-        lambda self, x: None)
+                        lambda self, x: None)
     monkeypatch.setattr('modules.transports.SSHTransport.execute',
-        lambda self, x: (None, None, None))
+                        lambda self, x: (None, None, None))
 
 
 @pytest.fixture(scope='module')

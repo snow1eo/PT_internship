@@ -5,7 +5,8 @@ import sqlite3
 from datetime import datetime
 
 from modules.errors import ConfigError
-from modules.transports import get_transport_config, get_transport_names, get_host_name
+from modules.transports import get_transport_config, get_transport_names, \
+    get_host_name
 
 DB_NAME = 'sqlite3.db'
 CFG_NAME = os.path.join('config', 'controls.json')
@@ -33,7 +34,8 @@ def get_controls():
 
 
 def check_config():
-    test_nums = [int(re.findall(r'\d+', test)[0]) for test in os.listdir('scripts')
+    test_nums = [int(re.findall(r'\d+', test)[0]) for test
+                 in os.listdir('scripts')
                  if re.match(r'\d+_.+\.py', test)]
     cfg_nums = set(map(int, get_controls().keys()))
     if not set(test_nums).issubset(cfg_nums):
@@ -133,7 +135,10 @@ def init_scanning():
         for transport_name in transport_names:
             transport = get_transport_config(transport_name)
             curr.execute("INSERT INTO transport VALUES (NULL, ?, ?, ?, ?)",
-                         (transport_name, transport.user, transport.port, get_scan_id()))
+                         (transport_name,
+                          transport.user,
+                          transport.port,
+                          get_scan_id()))
     _initialized = True
 
 

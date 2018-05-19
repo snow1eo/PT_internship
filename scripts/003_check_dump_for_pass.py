@@ -24,7 +24,8 @@ def main():
             with sqlite3.connect(DB_NAME) as db:
                 curr = db.cursor()
                 curr.execute("UPDATE control SET prescription = ? WHERE id = ?",
-                             ("Found credentials: {}: {}".format(login, password), TEST_NUM))
+                             ("Found credentials: {}: {}".format(
+                                 login, password), TEST_NUM))
             return Status.NOT_COMPLIANT, None
     except (TransportConnectionError, RemoteHostCommandError):
         return Status.NOT_APPLICABLE, 'No connection'

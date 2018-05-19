@@ -25,7 +25,8 @@ def render(tpl_path, context):
 
 def get_context():
     Control = namedtuple('Control',
-                         'ID, title, description, requirement, prescription, status, error')
+                         """ID, title, description, requirement,
+                            prescription, status, error""")
     Transport = namedtuple('Transport', 'name, user, port')
     Audit = namedtuple('Audit', 'attribute, value')
     with sqlite3.connect(DB_NAME) as db:
@@ -33,16 +34,19 @@ def get_context():
         scan_id = get_scan_id()
         audit = {prot: [Audit(attribute, value) for attribute, value in
                         curr.execute("""SELECT attribute, value FROM audit
-                                 WHERE scan_id = ? and protocol = ?""", (scan_id, prot))]
+                                        WHERE scan_id = ? and protocol = ?""",
+                                     (scan_id, prot))]
                  for prot in get_transport_names()}
         transports = [Transport(name, user, port) for name, user, port in
-                      curr.execute("SELECT name, user, port FROM transport WHERE scan_id = ?", (scan_id,))]
-        controls = [Control(ID, title, desc, requir, presc, Status(code).name, error) for
-                    ID, title, desc, requir, presc, code, error in
+                      curr.execute("""SELECT name, user, port FROM transport
+                                      WHERE scan_id = ?""", (scan_id,))]
+        controls = [Control(ID, title, desc, requir, presc, Status(code).name, error)
+                    for ID, title, desc, requir, presc, code, error in
                     curr.execute("""SELECT scandata.id, control.title,
-                        control.description, control.requirement, control.prescription,
-                        scandata.status, scandata.error FROM scandata INNER JOIN
-                        control ON scandata.ctrl_id = control.id AND
+                        control.description, control.requirement,
+                        control.prescription, scandata.status, scandata.error 
+                        FROM scandata INNER JOIN control ON
+                        scandata.ctrl_id = control.id AND
                         scandata.scan_id = ?""", (scan_id,)).fetchall()]
         start_time, finish_time = map(
             lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f"),
