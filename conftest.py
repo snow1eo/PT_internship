@@ -31,6 +31,7 @@ def run_docker(request):
     }
 
     client = docker.from_env()
+    started_containers = list()
     for container_name, container_env in containers_env.items():
         images = client.images.build(
             path=os.path.join(docker_path, container_name),
@@ -40,20 +41,21 @@ def run_docker(request):
                                   detach=True,
                                   auto_remove=True,
                                   **container_env)
+            started_containers.append(container_name)
         except Exception as e:
             if str(e).startswith('409 Client Error: Conflict'):
                 pass
             else:
                 print(e)
     client.containers.prune()
-    sleep(15)  # waiting for start containers
+    if started_containers:
+        sleep(15)  # waiting for start containers
 
     def stop_container():
         close_all_connections()
         containers = docker.from_env().containers.list()
-        running_containers = {env['name'] for env in containers_env.values()}
         for container in containers:
-            if container.name in running_containers:
+            if container.name in started_containers:
                 container.stop()
 
     request.addfinalizer(stop_container)
