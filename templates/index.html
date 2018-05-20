@@ -22,21 +22,21 @@
         <p> System address: {{ host }} </p>
         <p> System info: </p>
         {% for protocol, audits in audit.items() if audits %}
-        <br>
-        <p> Protocol: {{ protocol }} </p>
-        {% for audit in audits %}
-        {{ audit.attribute }}: <br>
-        {% for line in audit.value.split('\n') %}
-        {{ line }} <br>
-        {% endfor %}
-        {% endfor %}
+            <br>
+            <p> Protocol: {{ protocol }} </p>
+            {% for audit in audits %}
+                {{ audit.attribute }}: <br>
+                {% for line in audit.value.split('\n') %}
+                    {{ line }} <br>
+                {% endfor %}
+            {% endfor %}
         {% endfor %}
         <br>
         <p> Transports: </p>
         {% for transport in transports %}
-        {{ transport.name }}: <br>
-        Port: {{ transport.port }} <br>
-        User: {{ transport.user }} <br><br>
+            {{ transport.name }}: <br>
+            Port: {{ transport.port }} <br>
+            User: {{ transport.user }} <br><br>
         {% endfor %}
     </div>
 </article>
