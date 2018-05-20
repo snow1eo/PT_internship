@@ -19,7 +19,7 @@ def main():
         else:
             # Пока только 1 вариант обрабатывается
             data = tuple(map(lambda x: x.split(), data.split('\n')))[0]
-            login = data[0]  # Это же логин?
+            login = data[1]
             password = cisco_type7.decode(data[4])
             with sqlite3.connect(DB_NAME) as db:
                 curr = db.cursor()

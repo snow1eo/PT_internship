@@ -3,7 +3,8 @@ import sqlite3
 from enum import IntEnum
 
 from modules.database import DB_NAME, get_scan_id, init_scanning
-from modules.errors import SNMPError, SNMPStatusError, TransportConnectionError
+from modules.errors import RemoteHostCommandError, TransportConnectionError, \
+    SNMPError, SNMPStatusError
 from modules.transports import get_transport
 
 
@@ -38,20 +39,13 @@ def snmp_audit():
             ifaces.append(snmp.get_snmpdata(
                 ifDescr.format(num=i_num),
                 ifOperStatus.format(num=i_num)))
-    # Тут не удалось красиво monkeypatch накинуть, так что AttributeError
-    # отлавливается для теста
-    # Некрасиво и не очень удобно, нужно как-то поправить
-    except (TransportConnectionError, SNMPError, SNMPStatusError, AttributeError):
+    except (TransportConnectionError, SNMPError, SNMPStatusError):
         return
     ifaces = tuple(map(lambda x: [x[0], IfaceStatus(int(x[1])).name], ifaces))
-    # TODO some parsing
-    # Как это распарсить, если вывод имеет различный формат?
-    # Можно просто свалить в одно поле и считать, что там есть
-    # информация о вендоре, ОС и ПО?
+    vendor, version,  = sysDescr_data.split('\n')[:2]
     attributes = dict(
-        vendor='somevendor',
-        platform='someplatform',
-        software_version='v2',
+        vendor=vendor,
+        software_version=version,
         interfaces='\n'.join(["Ifnterface: {}, status: {}".format(*iface)
                               for iface in ifaces]))
     with sqlite3.connect(DB_NAME) as db:
@@ -72,7 +66,8 @@ def ssh_audit():
         OS=ssh.execute_show('cat /proc/version'),
         Users=ssh.execute_show('cat /etc/passwd'),
         MACs=ssh.execute_show('ip l'),
-        Packages=get_packages(ssh))  # это те MAC, или как-то по-другому нужно смотреть?
+        Packages='\n'.join('{}: {}'.format(pkg, ver) for pkg, ver
+            in get_packages(ssh).items()))
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
@@ -85,12 +80,12 @@ def get_packages(ssh):
     try:
         pkgs = re.findall(r'ii\s+(\S+)\s+(\S+)',
                           ssh.execute_show('dpkg -l'))
-        return '\n'.join(['{} {}'.format(*p) for p in pkgs])
+        return {p[0]: p[1] for p in pkgs}
     except RemoteHostCommandError:
         pass
     try:
         pkgs = re.findall(r'(\S+)-(\S+)',
                           ssh.execute_show('rpm -qa'))
-        return '\n'.join(['{} {}'.format(*p) for p in pkgs])
+        return {p[0]: p[1] for p in pkgs}
     except RemoteHostCommandError:
         pass

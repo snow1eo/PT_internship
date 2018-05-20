@@ -35,7 +35,7 @@ def test_ssh_audit_no_ssh(no_ssh_connections, create_new_database):
 
 
 def test_snmp_audit_pass(run_docker, create_new_database):
-    required_attributes = {'vendor', 'platform', 'software_version', 'interfaces'}
+    required_attributes = {'vendor', 'software_version', 'interfaces'}
     snmp_audit()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
