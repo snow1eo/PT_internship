@@ -25,7 +25,9 @@
         "prescription": "You should set right permissions using command 'chmod'",
         "env": {
             "filename": "/etc/shadow",
-            "permissions": "-rw-------"
+            "permissions": "600",
+            "owner": "root",
+            "group": "root"
         }
     },
     "003": {

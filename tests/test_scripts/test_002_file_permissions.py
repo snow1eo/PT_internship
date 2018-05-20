@@ -10,20 +10,17 @@ test = importlib.import_module('.002_file_permissions', package='scripts')
 def test_002_permissions_1(run_docker):
     env = get_controls()['002']['env']
     ssh = get_transport('SSH')
-    # transform string-permissions to oct
-    oct_permissions = oct(int(''.join(
-        ['0' if p == '-' else '1' for p in env['permissions'][1:]]), 2))[2:]
-    ssh.execute('chmod {} "{}"'.format(oct_permissions, env['filename']))
+    ssh.execute('chmod {permissions} "{filename}"'.format(**env))
+    ssh.execute('chown {owner}:{group} "{filename}"'.format(**env))
     assert test.main()[0] == Status.COMPLIANT
 
 
 def test_002_permissions_2(run_docker):
     env = get_controls()['002']['env']
     ssh = get_transport('SSH')
-    # transform string-permissions to oct and changing last bit using XOR
-    oct_permissions = oct(int(''.join(
-        ['0' if p == '-' else '1' for p in env['permissions'][1:]]), 2) ^ 1)[2:]
-    ssh.execute('chmod {} "{}"'.format(oct_permissions, env['filename']))
+    ssh.execute('chmod {permissions} "{filename}"'.format(
+        permissions=int(env['permissions']) ^ 1,
+        filename=env['filename']))
     assert test.main()[0] == Status.NOT_COMPLIANT
 
 
