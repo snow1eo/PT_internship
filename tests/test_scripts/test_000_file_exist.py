@@ -1,3 +1,4 @@
+from shlex import quote
 import importlib
 
 from modules.database import get_controls
@@ -9,6 +10,7 @@ test = importlib.import_module('.000_test_file_exist', package='scripts')
 
 def test_000_file_exist_1(run_docker):
     env = get_controls()['000']['env']
+    env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     ssh.execute('touch "{filename}"'.format(**env))
     assert test.main()[0] == Status.COMPLIANT
@@ -16,9 +18,10 @@ def test_000_file_exist_1(run_docker):
 
 def test_000_file_exist_2(run_docker):
     env = get_controls()['000']['env']
+    env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     try:
-        ssh.execute('rm -f "{filename}"'.format(**env))
+        ssh.execute('rm -f {filename}'.format(**env))
     except Exception:
         pass
     assert test.main()[0] == Status.NOT_COMPLIANT
