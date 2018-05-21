@@ -42,7 +42,7 @@ def snmp_audit():
     except (TransportConnectionError, SNMPError, SNMPStatusError):
         return
     ifaces = tuple(map(lambda x: [x[0], IfaceStatus(int(x[1])).name], ifaces))
-    vendor, version,  = sysDescr_data.split('\n')[:2]
+    vendor, version, = sysDescr_data.split('\n')[:2]
     attributes = dict(
         vendor=vendor,
         software_version=version,
@@ -67,7 +67,7 @@ def ssh_audit():
         Users=ssh.execute_show('cat /etc/passwd'),
         MACs=ssh.execute_show('ip l'),
         Packages='\n'.join('{}: {}'.format(pkg, ver) for pkg, ver
-            in get_packages(ssh).items()))
+                           in get_packages(ssh).items()))
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")

@@ -116,7 +116,7 @@ class MySQLTransport(Transport):
         variables = {
             var['VARIABLE_NAME']: var['VARIABLE_VALUE'] for var in
             self.sqlexec("SELECT * FROM information_schema.global_variables")
-            }
+        }
         with sqlite3.connect(CACHE_DB_NAME) as db:
             curr = db.cursor()
             curr.execute("""CREATE TABLE IF NOT EXISTS variable(

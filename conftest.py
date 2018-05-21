@@ -83,7 +83,7 @@ def no_snmp_connections(monkeypatch):
 
     def no_snmp(self):
         raise TransportConnectionError(None, None)
-    
+
     monkeypatch.setattr('modules.transports.SNMPTransport.connect', no_snmp)
 
 
@@ -125,12 +125,12 @@ def create_new_database():
 @pytest.fixture()
 def db_relevant_version(monkeypatch):
     ver = get_controls()['004']['env']['relevant_version']
-    monkeypatch.setattr('modules.transports.MySQLTransport.get_version', 
-        lambda x: ver)
+    monkeypatch.setattr('modules.transports.MySQLTransport.get_version',
+                        lambda x: ver)
 
 
 @pytest.fixture()
 def db_not_relevant_version(monkeypatch):
     ver = get_controls()['004']['env']['relevant_version']
-    monkeypatch.setattr('modules.transports.MySQLTransport.get_version', 
-        lambda x: ver+'wrong')
+    monkeypatch.setattr('modules.transports.MySQLTransport.get_version',
+                        lambda x: ver + 'wrong')

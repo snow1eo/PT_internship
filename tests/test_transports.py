@@ -1,5 +1,6 @@
-import pytest
 import sqlite3
+
+import pytest
 
 from modules.errors import UnknownTransport, AuthenticationError, SSHFileNotFound, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase
