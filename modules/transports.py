@@ -1,4 +1,5 @@
 import json
+import sqlite3
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
@@ -13,6 +14,7 @@ from modules.errors import TransportConnectionError, MySQLError, \
     RemoteHostCommandError, SSHFileNotFound, SNMPStatusError, \
     SNMPError
 
+CACHE_DB_NAME = 'cache.sqlite3'
 ENV_FILE = os.path.join('config', 'env.json')
 _raw_conf = None
 _cache = dict()
@@ -97,6 +99,43 @@ class MySQLTransport(Transport):
                 raise MySQLError(sql)
         self.conn.commit()
         return curr.fetchall()
+
+    def get_global_variables(self):
+        with sqlite3.connect(CACHE_DB_NAME) as db:
+            curr = db.cursor()
+            curr.execute("SELECT name FROM sqlite_master where type = 'table'")
+            tables = curr.fetchall()
+            tables = list(map(list, tables))  # Converting a list
+            tables = set(sum(tables, []))
+            if 'variable' in tables:
+                return {
+                    var[0]: var[1] for var in
+                    curr.execute("SELECT name, value FROM variable").fetchall()
+                }
+        self.connect('information_schema')
+        variables = {
+            var['VARIABLE_NAME']: var['VARIABLE_VALUE'] for var in
+            self.sqlexec("SELECT * FROM information_schema.global_variables")
+            }
+        with sqlite3.connect(CACHE_DB_NAME) as db:
+            curr = db.cursor()
+            curr.execute("""CREATE TABLE IF NOT EXISTS variable(
+                            name TEXT, value TEXT)""")
+            for var in variables.items():
+                curr.execute("""INSERT INTO variable VALUES (?, ?)""", var)
+        return variables
+
+    def check_vars_value(self, var, value):
+        return self.get_global_variables()[var] == value
+
+    def get_version(self):
+        versions = ['9.7.3', '10.0.35', '10.2.0', '10.2.14']
+        versions.sort(reverse=True)
+        current_version = self.get_global_variables()['VERSION']
+        for version in versions:
+            if version in current_version:
+                return version
+        return 'not in list'
 
 
 class SSHTransport(Transport):

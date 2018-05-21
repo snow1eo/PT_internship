@@ -7,7 +7,8 @@ from shutil import rmtree
 import pytest
 
 from modules.database import CFG_NAME, DB_NAME, check_config, reset_database, \
-    init_database, add_control, get_controls, get_tests, init_scanning, set_finish_time
+    init_database, add_control, get_controls, get_tests, init_scanning, \
+    set_finish_time
 
 REQUIRED_TABLES = frozenset({'transport', 'control', 'scandata',
                              'scanning', 'sqlite_sequence', 'audit'})

@@ -8,7 +8,7 @@ from modules.errors import ConfigError
 from modules.transports import get_transport_config, get_transport_names, \
     get_host_name
 
-DB_NAME = 'sqlite3.db'
+DB_NAME = 'core.sqlite3'
 CFG_NAME = os.path.join('config', 'controls.json')
 
 _controls = None

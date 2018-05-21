@@ -36,5 +36,15 @@
         "req": "No credentials found",
         "prescription": "Here would be credentials found",
         "env": {}
+    },
+    "004": {
+        "title": "Checking database version",
+        "descr": "Checking the relevance of the database version",
+        "req": "The database version is relevant",
+        "prescription": "You should update your database",
+        "env": {
+            "relevant_version": "10.2.14"
+        }
+
     }
 }

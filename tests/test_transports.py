@@ -1,9 +1,10 @@
 import pytest
+import sqlite3
 
 from modules.errors import UnknownTransport, AuthenticationError, SSHFileNotFound, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase
 from modules.transports import get_transport, get_transport_config, \
-    SSHTransport, MySQLTransport
+    SSHTransport, MySQLTransport, CACHE_DB_NAME
 
 WRONG_PORT = -1
 port_ssh = get_transport_config('SSH').port
@@ -69,7 +70,8 @@ class TestMySQLTransport:
         sql = get_transport('MySQL')
         sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
         sql.connect('test_db')
-        sql.sqlexec("""CREATE TABLE IF NOT EXISTS test (
+        sql.sqlexec("DROP TABLE IF EXISTS test")
+        sql.sqlexec("""CREATE TABLE IF NOT EXISTS test(
                     name VARCHAR(20), owner VARCHAR(20))""")
         sql.sqlexec("INSERT INTO test VALUES ('Dolly', 'Me')")
         data = sql.sqlexec('SELECT * FROM test')
@@ -79,6 +81,13 @@ class TestMySQLTransport:
         sql = get_transport('MySQL')
         with pytest.raises(MySQLError):
             sql.sqlexec('WRONG REQUEST')
+
+    def test_get_global_variables_pass(self, run_docker, change_dir):
+        sql = get_transport('MySQL')
+        assert sql.get_global_variables()
+        with sqlite3.connect(CACHE_DB_NAME) as db:
+            curr = db.cursor()
+            assert curr.execute("""SELECT * FROM variable""")
 
 
 class TestSSHTransport:
