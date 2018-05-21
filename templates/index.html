@@ -20,11 +20,23 @@
     </h1>
     <div>
         <p> System address: {{ host }} </p>
-        <br> Transports: </br>
+            System info: <br>
+        {% for protocol, audits in audit.items() if audits %}
+            <br>
+            <p> Protocol: {{ protocol }} </p>
+            {% for audit in audits %}
+                {{ audit.attribute }}: <br>
+                {% for line in audit.value.split('\n') %}
+                    {{ line }} <br>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+        <br>
+        <p> Transports: </p>
         {% for transport in transports %}
-        <p> {{ transport.name }}: </p>
-        <p> Port: {{ transport.port }} </p>
-        <p> User: {{ transport.user }} </p>
+            {{ transport.name }}: <br>
+            Port: {{ transport.port }} <br>
+            User: {{ transport.user }} <br><br>
         {% endfor %}
     </div>
 </article>
@@ -41,7 +53,7 @@
     <div>
         <p> Total controls: {{ total_controls }} </p>
         {% for name, count in statuses.items() %}
-        <p> {{ name }}: {{ count }} </p>
+        {{ name }}: {{ count }} <br>
         {% endfor %}
     </div>
 </article>
@@ -52,10 +64,13 @@
     <h4>id: {{ control.ID }}</h4>
     <p> Requirement: {{ control.requirement }} </p>
     <p> System: {{ control.status }}</p>
+        {% if control.status == 'NOT_COMPLIANT' %}
+    <p> {{ control.prescription }} </p>
+        {% endif %}
         {% if control.error %}
     <p> Error: {{ control.error }} </p>
         {% endif %}
-    <br> {{ control.description }} </br>
+    <p> {{ control.description }} </p>
 </article>
 {% endfor %}
 

@@ -1,0 +1,23 @@
+version: '3'
+services:
+    debian-snmp:
+        container_name: debian-snmp
+        build:
+            context: debian-snmp
+            dockerfile: Dockerfile
+        user: root
+        ports:
+            - "22022:22"
+            - "161:161/udp"
+
+    mariadb:
+        container_name: mariadb
+        image: mariadb:latest
+        ports:
+            - "127.0.0.1:44306:3306"              
+
+        environment:
+            MYSQL_ROOT_PASSWORD: pwd123
+            MYSQL_USER: sauser
+            MYSQL_PASSWORD: sapassword
+            MYSQL_DATABASE: sadb

@@ -72,3 +72,20 @@ class UnknownDatabase(TransportConnectionError):
 
     def __str__(self):
         return self.db_name
+
+
+class SNMPError(TransportError):
+    def __init__(self, indication):
+        self.indication = indication
+
+    def __str__(self):
+        return "SNMP indicate error: {}".format(self.indication)
+
+
+class SNMPStatusError(TransportError):
+    def __init__(self, status, index):
+        self.status = status
+        self.index = index
+
+    def __str__(self):
+        return "SNMP status error: {} at {}".format(self.status, self.index)
