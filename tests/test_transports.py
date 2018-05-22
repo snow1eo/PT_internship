@@ -1,3 +1,4 @@
+import json
 import sqlite3
 
 import pytest
@@ -83,12 +84,21 @@ class TestMySQLTransport:
         with pytest.raises(MySQLError):
             sql.sqlexec('WRONG REQUEST')
 
-    def test_get_global_variables_pass(self, run_docker, change_dir):
+    def test_load_table(self, run_docker, change_dir):
         sql = get_transport('MySQL')
-        assert sql.get_global_variables()
+        data = sql.load_table('mysql.db')
         with sqlite3.connect(CACHE_DB_NAME) as db:
             curr = db.cursor()
-            assert curr.execute("""SELECT * FROM variable""")
+            curr.execute("""SELECT data_json FROM cached_table
+                            WHERE database = 'mysql' AND name = 'db'""")
+            assert json.loads(curr.fetchone()[0]) == data
+        sql.conn = None
+        assert sql.load_table('mysql.db') == data
+
+
+    def test_get_global_variables_pass(self, run_docker, change_dir):
+        sql = get_transport('MySQL')
+        assert isinstance(sql.get_global_variables(), dict)
 
 
 class TestSSHTransport:

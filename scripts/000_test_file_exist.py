@@ -14,5 +14,5 @@ def main():
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No connection'
     except Exception as e_info:
-        return Status.ERROR, str(e_info)
+        return Status.ERROR, repr(e_info)
     return Status.COMPLIANT, None

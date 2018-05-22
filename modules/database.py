@@ -84,7 +84,7 @@ def init_database():
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         ctrl_id INTEGER NOT NULL,
                         status INTEGER,
-                        error TEXT,
+                        message TEXT,
                         scan_id INTEGER NOT NULL,
                         FOREIGN KEY (ctrl_id) REFERENCES control(id),
                         FOREIGN KEY (scan_id) REFERENCES scanning(id))""")
@@ -111,12 +111,12 @@ def reset_database():
     set_finish_time()
 
 
-def add_control(ctrl_id, status, error):
+def add_control(ctrl_id, status, message):
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         curr.execute("PRAGMA foreign_keys = ON")
         curr.execute("INSERT INTO scandata VALUES (NULL, ?, ?, ?, ?)",
-                     (ctrl_id, status, error, get_scan_id()))
+                     (ctrl_id, status, message, get_scan_id()))
 
 
 def init_scanning():

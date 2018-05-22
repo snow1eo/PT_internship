@@ -26,7 +26,7 @@ def render(tpl_path, context):
 def get_context():
     Control = namedtuple('Control',
                          """ID, title, description, requirement,
-                            prescription, status, error""")
+                            prescription, status, message""")
     Transport = namedtuple('Transport', 'name, user, port')
     Audit = namedtuple('Audit', 'attribute, value')
     with sqlite3.connect(DB_NAME) as db:
@@ -40,11 +40,11 @@ def get_context():
         transports = [Transport(name, user, port) for name, user, port in
                       curr.execute("""SELECT name, user, port FROM transport
                                       WHERE scan_id = ?""", (scan_id,))]
-        controls = [Control(ID, title, desc, requir, presc, Status(code).name, error)
-                    for ID, title, desc, requir, presc, code, error in
+        controls = [Control(ID, title, desc, req, presc, Status(code).name, msg)
+                    for ID, title, desc, req, presc, code, msg in
                     curr.execute("""SELECT scandata.id, control.title,
                         control.description, control.requirement,
-                        control.prescription, scandata.status, scandata.error 
+                        control.prescription, scandata.status, scandata.message 
                         FROM scandata INNER JOIN control ON
                         scandata.ctrl_id = control.id AND
                         scandata.scan_id = ?""", (scan_id,)).fetchall()]

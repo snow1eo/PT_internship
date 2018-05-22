@@ -9,7 +9,7 @@ def run_tests():
     for id_, test in tests.items():
         try:
             test_mod = import_module('.' + test, package='scripts')
-            status, err = test_mod.main()
+            status, msg = test_mod.main()
         except Exception as e_info:
-            status, err = Status.EXCEPTION, str(e_info)
-        add_control(id_, status, err)
+            status, msg = Status.EXCEPTION, str(e_info)
+        add_control(id_, status, msg)

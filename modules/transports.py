@@ -1,18 +1,19 @@
 import json
 import sqlite3
 from abc import ABCMeta, abstractmethod
+from shlex import quote
 from typing import NamedTuple
 
 import os.path
 import paramiko
 import pymysql
-from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, \
-    UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
+from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, ContextData, \
+    UdpTransportTarget, ObjectType, ObjectIdentity
 
-from modules.errors import TransportConnectionError, MySQLError, \
-    AuthenticationError, UnknownTransport, UnknownDatabase, \
-    RemoteHostCommandError, SSHFileNotFound, SNMPStatusError, \
-    SNMPError
+from modules.errors import TransportConnectionError, AuthenticationError, UnknownTransport, RemoteHostCommandError, \
+    MySQLError, \
+    UnknownDatabase, SSHFileNotFound, SNMPStatusError, SNMPError, PermissionDenied
+from modules.statuses import Status
 
 CACHE_DB_NAME = 'cache.sqlite3'
 ENV_FILE = os.path.join('config', 'env.json')
@@ -100,30 +101,38 @@ class MySQLTransport(Transport):
         self.conn.commit()
         return curr.fetchall()
 
+    def load_table(self, table):
+        database, table = table.split('.')
+        with sqlite3.connect(CACHE_DB_NAME) as db:
+            curr = db.cursor()
+            curr.execute("""CREATE TABLE IF NOT EXISTS database(
+                            name TEXT PRIMARY KEY)""")
+            curr.execute("""CREATE TABLE IF NOT EXISTS cached_table(
+                            id INTEGER PRIMARY KEY,
+                            name TEXT,
+                            database TEXT NOT NULL,
+                            data_json TEXT,
+                            FOREIGN KEY (database) REFERENCES database(name))""")
+            if curr.execute("SELECT name FROM database WHERE name = ?",
+                    (database,)).fetchall():
+                curr.execute("INSERT INTO database VALUES (?)", (database,))
+            if curr.execute("""SELECT name FROM cached_table
+                               WHERE database = ? AND name = ?""",
+                (database, table)).fetchall():
+                return json.loads(curr.execute(
+                    """SELECT data_json FROM cached_table WHERE database = ?
+                       AND name = ?""", (database, table)).fetchone()[0])
+            else:
+                data = self.sqlexec("SELECT * FROM {}.{}".format(database, table))
+                curr.execute("INSERT INTO cached_table VALUES (NULL, ?, ?, ?)",
+                    (table, database, json.dumps(data)))
+                return data
+
     def get_global_variables(self):
-        with sqlite3.connect(CACHE_DB_NAME) as db:
-            curr = db.cursor()
-            curr.execute("SELECT name FROM sqlite_master where type = 'table'")
-            tables = curr.fetchall()
-            tables = list(map(list, tables))  # Converting a list
-            tables = set(sum(tables, []))
-            if 'variable' in tables:
-                return {
-                    var[0]: var[1] for var in
-                    curr.execute("SELECT name, value FROM variable").fetchall()
-                }
-        self.connect('information_schema')
-        variables = {
+        return {
             var['VARIABLE_NAME']: var['VARIABLE_VALUE'] for var in
-            self.sqlexec("SELECT * FROM information_schema.global_variables")
+            self.load_table('information_schema.global_variables')
         }
-        with sqlite3.connect(CACHE_DB_NAME) as db:
-            curr = db.cursor()
-            curr.execute("""CREATE TABLE IF NOT EXISTS variable(
-                            name TEXT, value TEXT)""")
-            for var in variables.items():
-                curr.execute("""INSERT INTO variable VALUES (?, ?)""", var)
-        return variables
 
     def check_vars_value(self, var, value):
         return self.get_global_variables()[var] == value
@@ -162,6 +171,8 @@ class SSHTransport(Transport):
         stdin, stdout, stderr = self.conn.exec_command(command)
         err = stderr.read()
         if err:
+            if "Permission denied" in str(err):
+                raise PermissionDenied(err)
             raise RemoteHostCommandError(err)
         return stdin, stdout, stderr
 
@@ -176,6 +187,28 @@ class SSHTransport(Transport):
         except FileNotFoundError:
             raise SSHFileNotFound(filename)
         return data
+
+    def check_permissions(self, filename, permissions, owner=None, group=None):
+        try:
+            data = self.execute_show(
+                'stat --printf="%a %U %G" {}'.format(quote(filename)))
+        except RemoteHostCommandError:
+            return Status.COMPLIANT, 'File not found'
+        except PermissionDenied:
+            return Status.NOT_APPLICABLE, 'No access to file'
+        data = data.split()
+        if sum((int(r) ^ 1) * int(c) for r, c in zip(
+                format(int(permissions, 8), '0=12b'),
+                format(int(data[0], 8), '0=12b'))):
+            return Status.NOT_COMPLIANT, "{}:{} != {}".format(
+                filename, permissions, data[0])
+        owner = owner or data[1]
+        group = group or data[2]
+        if data[1:] != [owner, group]:
+            return Status.NOT_COMPLIANT, "{}:{}::{}:{} != {}::{}:{}".format(
+                filename, permissions, owner, group, *data)
+        else:
+            return Status.COMPLIANT, "{}:{}::{}:{}".format(filename, *data)
 
 
 class SNMPTransport(Transport):

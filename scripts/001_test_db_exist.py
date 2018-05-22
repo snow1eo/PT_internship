@@ -10,18 +10,18 @@ def main():
         sql = get_transport('MySQL')
         databases = [db['Database'] for db in sql.sqlexec('SHOW DATABASES')]
         if env['db_name'] not in databases:
-            return Status.NOT_COMPLIANT, None
+            return Status.NOT_COMPLIANT, "Database doesn't exist"
         tables = [
             table['Tables_in_{db_name}'.format(**env)]
             for table in sql.sqlexec('SHOW TABLES FROM {db_name}'.format(**env))
         ]
         if env['table_name'] not in tables:
-            return Status.NOT_COMPLIANT, None
+            return Status.NOT_COMPLIANT, "Table doesn't exist"
         sql.connect(env['db_name'])
         if sql.sqlexec('SELECT * FROM {table_name}'.format(**env)):
             return Status.COMPLIANT, None
-        return Status.NOT_COMPLIANT, None
+        return Status.NOT_COMPLIANT, "Table is empty"
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No connection'
     except Exception as e_info:
-        return Status.ERROR, str(e_info)
+        return Status.ERROR, repr(e_info)
