@@ -1,6 +1,7 @@
 import json
 import sqlite3
 from abc import ABCMeta, abstractmethod
+from base64 import b64encode
 from shlex import quote
 from typing import NamedTuple
 
@@ -74,7 +75,8 @@ class MySQLTransport(Transport):
                                         database=self.env['MYSQL_DATABASE'],
                                         charset='utf8',
                                         cursorclass=pymysql.cursors.DictCursor,
-                                        unix_socket=False)
+                                        unix_socket=False,
+                                        connect_timeout=31536000)
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
                 raise AuthenticationError(self.user, self.password)
@@ -114,18 +116,24 @@ class MySQLTransport(Transport):
                             data_json TEXT,
                             FOREIGN KEY (database) REFERENCES database(name))""")
             if curr.execute("SELECT name FROM database WHERE name = ?",
-                    (database,)).fetchall():
+                            (database,)).fetchall():
                 curr.execute("INSERT INTO database VALUES (?)", (database,))
             if curr.execute("""SELECT name FROM cached_table
                                WHERE database = ? AND name = ?""",
-                (database, table)).fetchall():
+                            (database, table)).fetchall():
                 return json.loads(curr.execute(
                     """SELECT data_json FROM cached_table WHERE database = ?
                        AND name = ?""", (database, table)).fetchone()[0])
             else:
                 data = self.sqlexec("SELECT * FROM {}.{}".format(database, table))
+                for item in data:
+                    for key, value in item.items():
+                        if type(value) == bytes:
+                            item[key] = b64encode(value).decode()
+                        else:
+                            item[key] = str(value)
                 curr.execute("INSERT INTO cached_table VALUES (NULL, ?, ?, ?)",
-                    (table, database, json.dumps(data)))
+                             (table, database, json.dumps(data)))
                 return data
 
     def get_global_variables(self):
@@ -209,6 +217,10 @@ class SSHTransport(Transport):
                 filename, permissions, owner, group, *data)
         else:
             return Status.COMPLIANT, "{}:{}::{}:{}".format(filename, *data)
+
+    def get_processes(self):
+        return [x.split() for x in
+                self.execute_show('ps -eo pid,euser,comm').split('\n')[1:-1]]
 
 
 class SNMPTransport(Transport):

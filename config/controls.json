@@ -45,6 +45,15 @@
         "env": {
             "relevant_version": "10.2.14"
         }
-
+    },
+    "005": {
+        "title": "Checking user who runned mysqld is mysql",
+        "descr": "",
+        "req": "Mysql-daemon is running as user mysql",
+        "prescription": "You should run mysqld as mysql",
+        "env": {
+            "euser": "mysql",
+            "command": "mysqld"
+        }
     }
 }
