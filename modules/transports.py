@@ -2,7 +2,6 @@ import json
 import sqlite3
 from abc import ABCMeta, abstractmethod
 from base64 import b64encode
-from shlex import quote
 from typing import NamedTuple
 
 import os.path
@@ -11,10 +10,9 @@ import pymysql
 from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, ContextData, \
     UdpTransportTarget, ObjectType, ObjectIdentity
 
-from modules.errors import TransportConnectionError, AuthenticationError, UnknownTransport, RemoteHostCommandError, \
-    MySQLError, \
-    UnknownDatabase, SSHFileNotFound, SNMPStatusError, SNMPError, PermissionDenied
-from modules.statuses import Status
+from modules.errors import TransportConnectionError, AuthenticationError, \
+    UnknownTransport, RemoteHostCommandError, MySQLError, UnknownDatabase, \
+    SSHFileNotFound, SNMPStatusError, SNMPError, PermissionDenied
 
 CACHE_DB_NAME = 'cache.sqlite3'
 ENV_FILE = os.path.join('config', 'env.json')
@@ -136,24 +134,6 @@ class MySQLTransport(Transport):
                              (table, database, json.dumps(data)))
                 return data
 
-    def get_global_variables(self):
-        return {
-            var['VARIABLE_NAME']: var['VARIABLE_VALUE'] for var in
-            self.load_table('information_schema.global_variables')
-        }
-
-    def check_vars_value(self, var, value):
-        return self.get_global_variables()[var] == value
-
-    def get_version(self):
-        versions = ['9.7.3', '10.0.35', '10.2.0', '10.2.14']
-        versions.sort(reverse=True)
-        current_version = self.get_global_variables()['VERSION']
-        for version in versions:
-            if version in current_version:
-                return version
-        return 'not in list'
-
 
 class SSHTransport(Transport):
     NAME = 'SSH'
@@ -195,32 +175,6 @@ class SSHTransport(Transport):
         except FileNotFoundError:
             raise SSHFileNotFound(filename)
         return data
-
-    def check_permissions(self, filename, permissions, owner=None, group=None):
-        try:
-            data = self.execute_show(
-                'stat --printf="%a %U %G" {}'.format(quote(filename)))
-        except RemoteHostCommandError:
-            return Status.COMPLIANT, 'File not found'
-        except PermissionDenied:
-            return Status.NOT_APPLICABLE, 'No access to file'
-        data = data.split()
-        if sum((int(r) ^ 1) * int(c) for r, c in zip(
-                format(int(permissions, 8), '0=12b'),
-                format(int(data[0], 8), '0=12b'))):
-            return Status.NOT_COMPLIANT, "{}:{} != {}".format(
-                filename, permissions, data[0])
-        owner = owner or data[1]
-        group = group or data[2]
-        if data[1:] != [owner, group]:
-            return Status.NOT_COMPLIANT, "{}:{}::{}:{} != {}::{}:{}".format(
-                filename, permissions, owner, group, *data)
-        else:
-            return Status.COMPLIANT, "{}:{}::{}:{}".format(filename, *data)
-
-    def get_processes(self):
-        return [x.split() for x in
-                self.execute_show('ps -eo pid,euser,comm').split('\n')[1:-1]]
 
 
 class SNMPTransport(Transport):

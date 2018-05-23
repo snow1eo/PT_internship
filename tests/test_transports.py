@@ -95,10 +95,6 @@ class TestMySQLTransport:
         sql.conn = None
         assert sql.load_table('mysql.db') == data
 
-    def test_get_global_variables_pass(self, run_docker, change_dir):
-        sql = get_transport('MySQL')
-        assert isinstance(sql.get_global_variables(), dict)
-
 
 class TestSSHTransport:
     def test_connect_pass(self, run_docker):
@@ -137,10 +133,6 @@ class TestSSHTransport:
         ssh = get_transport('SSH')
         with pytest.raises(SSHFileNotFound):
             ssh.get_file('/wrong_file')
-
-    def test_get_processes(self, run_docker):
-        ssh = get_transport('SSH')
-        ssh.get_processes()
 
 
 class TestSNMPTransport:
