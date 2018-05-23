@@ -8,7 +8,6 @@ def main():
     try:
         relevant_ver = get_compliance_env('004')['relevant_version']
         sql = get_transport('MySQL')
-        print(get_sql_version(sql))
         if get_sql_version(sql) == relevant_ver:
             return Status.COMPLIANT, None
         else:

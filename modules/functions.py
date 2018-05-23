@@ -1,4 +1,6 @@
+import os
 import re
+from shlex import quote
 
 from modules.database import get_controls
 
@@ -32,4 +34,23 @@ def get_sql_version(sql):
 
 def get_processes(ssh):
     return [x.split() for x in
-            ssh.execute_show('ps -eo pid,euser,comm').split('\n')[1:-1]]
+            ssh.execute_show('ps -eo pid,euser,comm').splitlines()[1:-1]]
+
+
+def get_config(conf_name):
+    ssh = get_transport('SSH')
+    conf = clear_config(ssh.get_file(conf_name).decode())
+    for string in conf.splitlines():
+        if string.startswith('!includedir'):
+            conf = conf.replace(string, '')
+            path = quote(string.split()[1])
+            cfgs = ssh.execute_show('ls {}'.format(path)).split()
+            for cfg in cfgs:
+                conf += get_config(os.path.join(path, cfg))
+    return conf
+
+
+def clear_config(conf):
+    return '\n'.join([s.lstrip() for s in conf.splitlines()
+                      if not s.lstrip().startswith('#') and
+                         s.lstrip() != ''])

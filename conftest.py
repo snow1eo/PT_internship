@@ -99,20 +99,6 @@ def no_ssh_execute(monkeypatch):
                         lambda self, x: (None, None, None))
 
 
-@pytest.fixture()
-def db_relevant_version(monkeypatch):
-    ver = get_compliance_env('004')['relevant_version']
-    monkeypatch.setattr('modules.functions.get_sql_version',
-                        lambda x: ver)
-
-
-@pytest.fixture()
-def db_not_relevant_version(monkeypatch):
-    ver = get_compliance_env('004')['relevant_version']
-    monkeypatch.setattr('modules.functions.get_sql_version',
-                        lambda x: ver + 'wrong')
-
-
 @pytest.fixture(scope='module')
 def change_dir(request):
     TEST_DIR = '.test_tmp'

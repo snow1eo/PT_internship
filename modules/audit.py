@@ -42,7 +42,7 @@ def snmp_audit():
     except (TransportConnectionError, SNMPError, SNMPStatusError):
         return
     ifaces = tuple(map(lambda x: [x[0], IfaceStatus(int(x[1])).name], ifaces))
-    vendor, version, = sysDescr_data.split('\n')[:2]
+    vendor, version, = sysDescr_data.splitlines()[:2]
     attributes = dict(
         vendor=vendor,
         software_version=version,
