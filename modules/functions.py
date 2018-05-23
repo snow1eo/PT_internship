@@ -37,8 +37,7 @@ def get_processes(ssh):
             ssh.execute_show('ps -eo pid,euser,comm').splitlines()[1:-1]]
 
 
-def get_config(conf_name):
-    ssh = get_transport('SSH')
+def get_config(ssh, conf_name):
     conf = clear_config(ssh.get_file(conf_name).decode())
     for string in conf.splitlines():
         if string.startswith('!includedir'):
@@ -46,7 +45,7 @@ def get_config(conf_name):
             path = quote(string.split()[1])
             cfgs = ssh.execute_show('ls {}'.format(path)).split()
             for cfg in cfgs:
-                conf += get_config(os.path.join(path, cfg))
+                conf += get_config(ssh, os.path.join(path, cfg))
     return conf
 
 
