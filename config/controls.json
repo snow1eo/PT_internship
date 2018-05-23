@@ -61,6 +61,8 @@
         "descr": "Checking that password option don't used in global configuration file",
         "req": "Password option do not used",
         "prescription": "You should disable this option and remove password from config file.",
-        "env": {}
+        "env": {
+            "conf_name": "/etc/mysql/my.cnf"
+        }
     }
 }

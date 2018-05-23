@@ -81,11 +81,8 @@ def no_mysql_connections(monkeypatch):
 @pytest.fixture()
 def no_snmp_connections(monkeypatch):
     close_all_connections()
-
-    def no_snmp(self):
-        raise TransportConnectionError(None, None)
-
-    monkeypatch.setattr('modules.transports.SNMPTransport.connect', no_snmp)
+    monkeypatch.setattr('modules.transports.SNMPTransport.connect',
+        lambda x: exec('raise TransportConnectionError(None, None)'))
 
 
 @pytest.fixture()
@@ -100,6 +97,20 @@ def no_ssh_execute(monkeypatch):
                         lambda self, x: None)
     monkeypatch.setattr('modules.transports.SSHTransport.execute',
                         lambda self, x: (None, None, None))
+
+
+@pytest.fixture()
+def db_relevant_version(monkeypatch):
+    ver = get_compliance_env('004')['relevant_version']
+    monkeypatch.setattr('modules.functions.get_sql_version',
+                        lambda x: ver)
+
+
+@pytest.fixture()
+def db_not_relevant_version(monkeypatch):
+    ver = get_compliance_env('004')['relevant_version']
+    monkeypatch.setattr('modules.functions.get_sql_version',
+                        lambda x: ver + 'wrong')
 
 
 @pytest.fixture(scope='module')
@@ -121,17 +132,3 @@ def change_dir(request):
 @pytest.fixture()
 def create_new_database():
     reset_database()
-
-
-@pytest.fixture()
-def db_relevant_version(monkeypatch):
-    ver = get_compliance_env('004')['relevant_version']
-    monkeypatch.setattr('modules.functions.get_sql_version',
-                        lambda x: ver)
-
-
-@pytest.fixture()
-def db_not_relevant_version(monkeypatch):
-    ver = get_compliance_env('004')['relevant_version']
-    monkeypatch.setattr('modules.functions.get_sql_version',
-                        lambda x: ver + 'wrong')

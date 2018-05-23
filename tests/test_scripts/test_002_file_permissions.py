@@ -22,7 +22,7 @@ def test_not_compliant(run_docker):
     env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     ssh.execute('chmod {permissions} {filename}'.format(
-        permissions=int(env['permissions']) ^ 1,
+        permissions=7777,
         filename=env['filename']))
     assert test.main()[0] == Status.NOT_COMPLIANT
 
