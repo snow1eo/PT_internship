@@ -3,16 +3,16 @@
         "title": "File '/testfile' exist",
         "descr": "File named 'testfile' exist in the root folder on system.",    
         "req": "File exist",
-        "prescription": "This is a test, you don't have to do something",
+        "prescription": "This is a test, you don't have to do something.",
         "env": {
             "filename": "/testfile"
         }
     },
     "001": {
         "title": "Database 'test_db' exist",
-        "descr": "Database 'test_db' exist on system and has not empty table test_table",
+        "descr": "Database 'test_db' exist on system and has not empty table test_table.",
         "req": "Database exist",
-        "prescription": "This is a test, you don't have to do something",
+        "prescription": "This is a test, you don't have to do something.",
         "env": {
             "db_name": "test_db",
             "table_name": "test_table"
@@ -20,9 +20,9 @@
     },
     "002": {
         "title": "Permissions checking",
-        "descr": "Checking file for right permissions",
+        "descr": "Checking file for right permissions.",
         "req": "Permissions are right",
-        "prescription": "You should set right permissions using command 'chmod'",
+        "prescription": "You should set right permissions using command 'chmod'.",
         "env": {
             "filename": "/etc/shadow",
             "permissions": "600",
@@ -32,14 +32,14 @@
     },
     "003": {
         "title": "Memory dump analysis",
-        "descr": "Attempt to find credentials in memory dump",
+        "descr": "Attempt to find credentials in memory dump.",
         "req": "No credentials found",
         "prescription": "Here would be credentials found",
         "env": {}
     },
     "004": {
         "title": "Checking database version",
-        "descr": "Checking the relevance of the database version",
+        "descr": "Checking the relevance of the database version.",
         "req": "The database version is relevant",
         "prescription": "You should update your database",
         "env": {
@@ -48,7 +48,7 @@
     },
     "005": {
         "title": "Mysqld euser checking",
-        "descr": "Checking user who runned mysqld is mysql",
+        "descr": "Checking user who runned mysqld is mysql.",
         "req": "Mysql-daemon is running as user mysql",
         "prescription": "You should run mysqld as mysql",
         "env": {
@@ -58,11 +58,18 @@
     },
     "006": {
         "title": "Config checking",
-        "descr": "Checking that password option don't used in global configuration file",
+        "descr": "Checking that password option don't used in global configuration file.",
         "req": "Password option do not used",
         "prescription": "You should disable this option and remove password from config file.",
         "env": {
             "conf_name": "/etc/mysql/my.cnf"
         }
+    },
+    "007": {
+        "title": "MySQL passwords checking",
+        "descr": "Checking that MySQL users do not use weak passwords like username or 'pwd123'.",
+        "req": "Users dont have weak passwords",
+        "prescription": "These users should change password.",
+        "env": {}
     }
 }

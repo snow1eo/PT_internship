@@ -1,4 +1,6 @@
 import sqlite3
+import sys
+import traceback
 
 from passlib.hash import cisco_type7
 
@@ -29,5 +31,7 @@ def main():
             return Status.NOT_COMPLIANT, None
     except (TransportConnectionError, RemoteHostCommandError):
         return Status.NOT_APPLICABLE, 'No connection'
-    except Exception as e_info:
-        return Status.ERROR, str(e_info)
+    except Exception:
+        exc_info = sys.exc_info()
+        traceback.print_exception(*exc_info)
+        return Status.ERROR, ''.join(traceback.format_exception(*exc_info))

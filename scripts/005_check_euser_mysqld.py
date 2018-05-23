@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 from modules.errors import TransportConnectionError
 from modules.functions import get_processes, get_compliance_env
 from modules.statuses import Status
@@ -18,5 +21,7 @@ def main():
         return Status.NOT_APPLICABLE, 'Mysql is not running'
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No SSH connection'
-    except Exception as e_info:
-        return Status.ERROR, str(e_info)
+    except Exception:
+        exc_info = sys.exc_info()
+        traceback.print_exception(*exc_info)
+        return Status.ERROR, ''.join(traceback.format_exception(*exc_info))

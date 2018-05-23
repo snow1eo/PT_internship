@@ -14,6 +14,7 @@ def test_not_compliant(run_docker):
     # TODO
     pass
 
+
 def test_not_applicable(no_ssh_connections):
     assert test.main()[0] == Status.NOT_APPLICABLE
 

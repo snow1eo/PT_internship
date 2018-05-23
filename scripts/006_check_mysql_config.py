@@ -1,4 +1,6 @@
 import re
+import sys
+import traceback
 
 from modules.errors import TransportConnectionError
 from modules.functions import get_compliance_env, get_config
@@ -16,11 +18,13 @@ def main():
             return Status.COMPLIANT, None
         else:
             return Status.NOT_COMPLIANT, \
-                "Password using: {password}".format(**valuated_options)
+                   "Password using: {password}".format(**valuated_options)
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No SSH connection'
-    except Exception as e_info:
-        return Status.ERROR, str(e_info)
+    except Exception:
+        exc_info = sys.exc_info()
+        traceback.print_exception(*exc_info)
+        return Status.ERROR, ''.join(traceback.format_exception(*exc_info))
 
 
 def get_valuated_options(conf):

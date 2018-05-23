@@ -7,7 +7,6 @@ import pytest
 
 from modules.database import reset_database
 from modules.errors import TransportConnectionError
-from modules.functions import get_compliance_env
 from modules.transports import get_transport_config, close_all_connections
 
 
@@ -81,8 +80,11 @@ def no_mysql_connections(monkeypatch):
 @pytest.fixture()
 def no_snmp_connections(monkeypatch):
     close_all_connections()
-    monkeypatch.setattr('modules.transports.SNMPTransport.connect',
-        lambda x: exec('raise TransportConnectionError(None, None)'))
+
+    def no_snmp(self):
+        raise TransportConnectionError(None, None)
+
+    monkeypatch.setattr('modules.transports.SNMPTransport.connect', no_snmp)
 
 
 @pytest.fixture()

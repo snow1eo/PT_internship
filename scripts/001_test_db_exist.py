@@ -1,5 +1,8 @@
-from modules.functions import get_compliance_env
+import sys
+import traceback
+
 from modules.errors import TransportConnectionError
+from modules.functions import get_compliance_env
 from modules.statuses import Status
 from modules.transports import get_transport
 
@@ -23,5 +26,7 @@ def main():
         return Status.NOT_COMPLIANT, "Table is empty"
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No connection'
-    except Exception as e_info:
-        return Status.ERROR, repr(e_info)
+    except Exception:
+        exc_info = sys.exc_info()
+        traceback.print_exception(*exc_info)
+        return Status.ERROR, ''.join(traceback.format_exception(*exc_info))

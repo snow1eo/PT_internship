@@ -8,17 +8,15 @@ test = importlib.import_module('.004_check_db_version', package='scripts')
 
 def test_compliant(run_docker, monkeypatch):
     ver = get_compliance_env('004')['relevant_version']
-    monkeypatch.setattr('modules.functions.get_sql_version',
+    monkeypatch.setattr(test, 'get_sql_version',
                         lambda x: ver)
-    importlib.reload(test)
     assert test.main()[0] == Status.COMPLIANT
 
 
 def test_not_compliant(run_docker, monkeypatch):
     ver = get_compliance_env('004')['relevant_version']
-    monkeypatch.setattr('modules.functions.get_sql_version',
+    monkeypatch.setattr(test, 'get_sql_version',
                         lambda x: ver + 'wrong')
-    importlib.reload(test)
     assert test.main()[0] == Status.NOT_COMPLIANT
 
 

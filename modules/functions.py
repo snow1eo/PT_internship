@@ -1,5 +1,6 @@
 import os
 import re
+from hashlib import sha1
 from shlex import quote
 
 from modules.database import get_controls
@@ -24,10 +25,10 @@ def check_vars_value(sql, var, value):
     return sql.get_global_variables()[var] == value
 
 
-def get_sql_version(sql):
-    pattern = re.compile(r'\d+\.\d+\.\d+')
-    version = re.findall(pattern, get_global_variables(sql)['VERSION'])
-    return 'unknown' if not version else version[0]
+def mysql_hash(password):
+    pass1 = sha1(password.encode()).digest()
+    pass2 = sha1(pass1).hexdigest()
+    return '*' + pass2.upper()
 
 # SSH
 
@@ -42,10 +43,10 @@ def get_config(ssh, conf_name):
     for string in conf.splitlines():
         if string.startswith('!includedir'):
             conf = conf.replace(string, '')
-            path = quote(string.split()[1])
+            path = string.split()[1]
             cfgs = ssh.execute_show('ls {}'.format(path)).split()
             for cfg in cfgs:
-                conf += get_config(ssh, os.path.join(path, cfg))
+                conf += get_config(ssh, quote(os.path.join(path, cfg)))
     return conf
 
 
