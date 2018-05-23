@@ -16,20 +16,3 @@ def main():
         return Status.NOT_APPLICABLE, 'No connection'
     except Exception as e_info:
         return Status.ERROR, str(e_info)
-
-
-def get_global_variables(sql):
-    return {
-        var['VARIABLE_NAME']: var['VARIABLE_VALUE'] for var in
-        sql.load_table('information_schema.global_variables')
-    }
-
-
-def check_vars_value(sql, var, value):
-    return sql.get_global_variables()[var] == value
-
-
-def get_version(sql):
-    pattern = re.compile(r'\d+\.\d+\.\d+')
-    version = re.findall(pattern, sql.get_global_variables()['VERSION'])
-    return 'unknown' if not version else version[0]
