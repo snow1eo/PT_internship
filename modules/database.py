@@ -11,9 +11,9 @@ from modules.transports import get_transport_config, get_transport_names, \
 DB_NAME = 'core.sqlite3'
 CFG_NAME = os.path.join('config', 'controls.json')
 
-_controls = None
 _initialized = False
 _scan_id = None
+_controls = None
 
 
 def get_tests():
@@ -29,7 +29,7 @@ def get_controls():
     if not _controls:
         with open(CFG_NAME) as f:
             _controls = json.load(f)
-    return _controls
+    return _controls.copy()
 
 
 def check_config():
@@ -99,11 +99,11 @@ def init_database():
 
 def reset_database():
     global _initialized
-    global _controls
     global _scan_id
+    global _controls
     _initialized = False
-    _controls = None
     _scan_id = None
+    _controls = None
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
     init_database()

@@ -1,4 +1,4 @@
-from modules.database import get_controls
+from modules.functions import get_compliance_env
 from modules.errors import TransportConnectionError
 from modules.statuses import Status
 from modules.transports import get_transport
@@ -6,7 +6,7 @@ from modules.transports import get_transport
 
 def main():
     try:
-        env = get_controls()['001']['env']
+        env = get_compliance_env('001')
         sql = get_transport('MySQL')
         databases = [db['Database'] for db in sql.sqlexec('SHOW DATABASES')]
         if env['db_name'] not in databases:

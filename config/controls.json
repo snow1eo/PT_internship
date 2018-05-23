@@ -47,13 +47,20 @@
         }
     },
     "005": {
-        "title": "Checking user who runned mysqld is mysql",
-        "descr": "",
+        "title": "Mysqld euser checking",
+        "descr": "Checking user who runned mysqld is mysql",
         "req": "Mysql-daemon is running as user mysql",
         "prescription": "You should run mysqld as mysql",
         "env": {
             "euser": "mysql",
             "command": "mysqld"
         }
+    },
+    "006": {
+        "title": "Config checking",
+        "descr": "Checking that password option don't used in global configuration file",
+        "req": "Password option do not used",
+        "prescription": "You should disable this option and remove password from config file.",
+        "env": {}
     }
 }

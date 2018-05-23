@@ -1,4 +1,4 @@
-from modules.database import get_controls
+from modules.functions import get_compliance_env, get_sql_version
 from modules.errors import TransportConnectionError
 from modules.statuses import Status
 from modules.transports import get_transport
@@ -6,9 +6,9 @@ from modules.transports import get_transport
 
 def main():
     try:
-        relevant_ver = get_controls()['004']['env']['relevant_version']
+        relevant_ver = get_compliance_env('004')['relevant_version']
         sql = get_transport('MySQL')
-        if sql.get_version() == relevant_ver:
+        if get_sql_version(sql) == relevant_ver:
             return Status.COMPLIANT, None
         else:
             return Status.NOT_COMPLIANT, None

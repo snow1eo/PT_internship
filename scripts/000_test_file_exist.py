@@ -1,4 +1,4 @@
-from modules.database import get_controls
+from modules.functions import get_compliance_env
 from modules.errors import TransportConnectionError, SSHFileNotFound
 from modules.statuses import Status
 from modules.transports import get_transport
@@ -6,7 +6,7 @@ from modules.transports import get_transport
 
 def main():
     try:
-        env = get_controls()['000']['env']
+        env = get_compliance_env('000')
         ssh = get_transport('SSH')
         ssh.get_file(env['filename'])
     except SSHFileNotFound:

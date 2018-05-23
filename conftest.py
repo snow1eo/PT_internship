@@ -5,8 +5,9 @@ from time import sleep
 import docker
 import pytest
 
-from modules.database import reset_database, get_controls
+from modules.database import reset_database
 from modules.errors import TransportConnectionError
+from modules.functions import get_compliance_env
 from modules.transports import get_transport_config, close_all_connections
 
 
@@ -124,13 +125,13 @@ def create_new_database():
 
 @pytest.fixture()
 def db_relevant_version(monkeypatch):
-    ver = get_controls()['004']['env']['relevant_version']
-    monkeypatch.setattr('modules.transports.MySQLTransport.get_version',
+    ver = get_compliance_env('004')['relevant_version']
+    monkeypatch.setattr('modules.functions.get_sql_version',
                         lambda x: ver)
 
 
 @pytest.fixture()
 def db_not_relevant_version(monkeypatch):
-    ver = get_controls()['004']['env']['relevant_version']
-    monkeypatch.setattr('modules.transports.MySQLTransport.get_version',
+    ver = get_compliance_env('004')['relevant_version']
+    monkeypatch.setattr('modules.functions.get_sql_version',
                         lambda x: ver + 'wrong')

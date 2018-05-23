@@ -1,12 +1,12 @@
-from modules.database import get_controls
 from modules.errors import TransportConnectionError
+from modules.functions import get_processes, get_compliance_env
 from modules.statuses import Status
 from modules.transports import get_transport
 
 
 def main():
     try:
-        env = get_controls()['005']['env']
+        env = get_compliance_env('005')
         ssh = get_transport('SSH')
         procs = get_processes(ssh)
         for proc in procs:
@@ -20,8 +20,3 @@ def main():
         return Status.NOT_APPLICABLE, 'No SSH connection'
     except Exception as e_info:
         return Status.ERROR, str(e_info)
-
-
-def get_processes(ssh):
-    return [x.split() for x in
-        ssh.execute_show('ps -eo pid,euser,comm').split('\n')[1:-1]]

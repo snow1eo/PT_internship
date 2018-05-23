@@ -1,7 +1,7 @@
 import importlib
 from shlex import quote
 
-from modules.database import get_controls
+from modules.functions import get_compliance_env
 from modules.statuses import Status
 from modules.transports import get_transport, close_all_connections
 
@@ -9,7 +9,7 @@ test = importlib.import_module('.002_file_permissions', package='scripts')
 
 
 def test_compliant(run_docker):
-    env = get_controls()['002']['env']
+    env = get_compliance_env('002')
     env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     ssh.execute('chmod {permissions} {filename}'.format(**env))
@@ -18,7 +18,7 @@ def test_compliant(run_docker):
 
 
 def test_not_compliant(run_docker):
-    env = get_controls()['002']['env']
+    env = get_compliance_env('002')
     env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     ssh.execute('chmod {permissions} {filename}'.format(
