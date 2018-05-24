@@ -42,7 +42,7 @@ def get_config(ssh, conf_name):
     conf = clear_config(ssh.get_file(conf_name).decode())
     for string in conf.splitlines():
         if string.startswith('!includedir'):
-            conf = conf.replace(string, '')
+            conf = conf.replace(string + '\n', '')
             path = string.split()[1]
             cfgs = ssh.execute_show('ls {}'.format(path)).split()
             for cfg in cfgs:

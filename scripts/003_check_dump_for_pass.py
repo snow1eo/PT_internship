@@ -20,7 +20,7 @@ def main():
             return Status.COMPLIANT, None
         else:
             # Пока только 1 вариант обрабатывается
-            data = tuple(map(lambda x: x.split(), data.splitlines()))[0]
+            data, *_ = map(str.split, data.splitlines())
             login = data[1]
             password = cisco_type7.decode(data[4])
             with sqlite3.connect(DB_NAME) as db:

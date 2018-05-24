@@ -71,5 +71,23 @@
         "req": "Users dont have weak passwords",
         "prescription": "These users should change password.",
         "env": {}
+    },
+    "008": {
+        "title": "MySQL tables privilege",
+        "descr": "Checking that the table is given privileges only to users from whitelist.",
+        "req": "The table is given privileges only to users from whitelist",
+        "prescription": "You should revoke privileges.",
+        "env": {
+            "database": "mysql",
+            "table": "user",
+            "whitelist": ["admin"]
+        }
+    },
+    "009":{
+        "title": "OS detect",
+        "descr": "Trying to detect OS.",
+        "req": "OS detected",
+        "prescription": "",
+        "env": {}
     }
 }
