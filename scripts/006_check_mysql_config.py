@@ -24,7 +24,7 @@ def main():
     except Exception:
         exc_info = sys.exc_info()
         traceback.print_exception(*exc_info)
-        return Status.ERROR, ''.join(traceback.format_exception(*exc_info))
+        return Status.ERROR, traceback.format_exception(*exc_info)[-1]
 
 
 def get_valuated_options(conf):

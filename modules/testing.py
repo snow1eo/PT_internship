@@ -15,6 +15,5 @@ def run_tests():
         except Exception:
             exc_info = sys.exc_info()
             traceback.print_exception(*exc_info)
-            status, msg = Status.EXCEPTION, \
-                ''.join(traceback.format_exception(*exc_info))
+            status, msg = Status.EXCEPTION, traceback.format_exception(*exc_info)[-1]
         add_control(id_, status, msg)
