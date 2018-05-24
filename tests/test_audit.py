@@ -1,6 +1,6 @@
 import sqlite3
 
-from modules.audit import audit, ssh_audit, snmp_audit
+from modules.audit import audit, ssh_audit_cisco, ssh_audit_linux, snmp_audit
 from modules.database import DB_NAME, get_scan_id, init_scanning
 
 
@@ -13,8 +13,9 @@ def test_audit(run_docker):
 
 
 def test_ssh_audit_pass(run_docker, create_new_database):
-    required_attributes = {'OS', 'Users', 'MACs', 'Packages'}
-    ssh_audit()
+    required_attributes = {'OS', 'Users', 'Packages'}
+    ssh_audit_cisco()
+    ssh_audit_linux()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         attributes = curr.execute("""SELECT attribute FROM audit
@@ -26,7 +27,8 @@ def test_ssh_audit_pass(run_docker, create_new_database):
 
 
 def test_ssh_audit_no_ssh(no_ssh_connections, create_new_database):
-    ssh_audit()
+    ssh_audit_cisco()
+    ssh_audit_linux()
     with sqlite3.connect(DB_NAME) as db:
         curr = db.cursor()
         assert not curr.execute("""SELECT attribute FROM audit
