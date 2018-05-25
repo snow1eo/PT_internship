@@ -20,9 +20,11 @@ class IfaceStatus(IntEnum):
 
 def audit():
     init_scanning()
+    os = detect_os()
     snmp_audit()
     ssh_audit_cisco()
-    ssh_audit_linux()
+    if os != 'unknown':
+        ssh_audit_unix()
 
 
 def snmp_audit():
@@ -73,7 +75,7 @@ def ssh_audit_cisco():
     
 
 
-def ssh_audit_linux():
+def ssh_audit_unix():
     try:
         ssh = get_transport('SSH')
         set_attributes(dict(Packages='\n'.join('{}: {}'.format(pkg, ver) for 
@@ -104,3 +106,24 @@ def get_packages(ssh):
         return {p[0]: p[1] for p in pkgs}
     except RemoteHostCommandError:
         pass
+
+
+def detect_os():
+    try:
+        ssh = get_transport('SSH')
+        raw_os = ssh.execute_show('uname -a')
+        if not raw_os.startswith('Linux'):
+            return Status.COMPLIANT, raw_os.split()[0]
+        raw_os = raw_os.lower()
+        if 'debian' in raw_os:
+            return 'Debian Linux'
+        elif 'centos' in raw_os:
+            return 'CentOS Linux'
+        elif 'ubuntu' in raw_os:
+            return 'Ubuntu Linux'
+        elif 'arch' in raw_os:
+            return 'Arch Linux'
+        else:
+            return 'Unknown Linux'
+    except TransportConnectionError:
+        return 'Unknown'
