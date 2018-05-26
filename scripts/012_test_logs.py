@@ -15,21 +15,13 @@ def main():
                 port=22,
                 user="admin",
                 password="P@ssw0rd")
-    
+
         ssh.execute("terminal pager 0")
-        console_timeout = re.findall(R'\d+', ssh.execute_show("sh running-config console timeout"))[0]
+        config = ssh.execute_show("sh running-config logging")
 
-        if int(console_timeout) > 10:
-            return Status.NOT_COMPLIANT, 
-                        'console timeout is ' + console_timeout
-    
-        ssh_timeout = re.findall(R'\d+', ssh.execute_show("sh running-config ssh timeout"))[0]
-     
-        if int(ssh_timeout) > 10:
-            return Status.NOT_COMPLIANT, 'ssh timeout is ' + ssh_timeout
-
-        return Status.COMPLIANT
-
+        if log_mode == "logging on" or log_mode == "logging enable":
+            return Status.COMPLIANT, None
+        return Status.NOT_COMPLIANT, log_mode
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No connection'
     except Exception:
