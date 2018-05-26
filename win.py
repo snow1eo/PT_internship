@@ -34,7 +34,23 @@ with open('CVE_ID-OSversion.csv', 'r') as csvfile:
 
 #print(to_bd[0])
 
+def db_add(cursor,table,values):
+    cursor.execute("INSERT INTO "+table+" VALUES "+str(values))
+
+def db_show(cursor, table):
+    cursor.execute("SELECT ROWID, * FROM "+table)
+    for row in cursor:
+        print(row)
+        
+def db_create(cursor):
+    table_name = input()
+    columns = input()
+    command = ('CREATE TABLE IF NOT EXISTS '+table_name+'(id INTEGER PRIMARY KEY, '+columns+')')
+    cursor.execute(command)
+
 hosts = ("172.16.22.11","172.16.22.10")
+mem_db = sqlite3.connect('example.db')
+curr = mem_db.cursor()
 def task_1(hosts):
     c = wmi.WMI(computer = hosts[0],
      user = "administrator",
@@ -59,7 +75,20 @@ def task_1(hosts):
         data_to_put['data_2']['Index'] = elem.Index
         data_to_put['data_2']['IPAddress'] = str(elem.IPAddress).replace("('",'').replace("',)",'')
         data_to_put['data_2']['MACAddress'] = elem.MACAddress
-    return data_to_put
+    curr.execute("INSERT INTO audit VALUES "+str((1, "Index",  data_to_put['data_1']['Index'])))
+    curr.execute("INSERT INTO audit VALUES "+str((2, "IPAddress",  data_to_put['data_1']['IPAddress'])))
+    curr.execute("INSERT INTO audit VALUES "+str((3, "MACAddress",  data_to_put['data_1']['MACAddress'])))
+    curr.execute("INSERT INTO audit VALUES "+str((4, "Index",  data_to_put['data_2']['Index'])))
+    curr.execute("INSERT INTO audit VALUES "+str((5, "IPAddress",  data_to_put['data_2']['IPAddress'])))
+    curr.execute("INSERT INTO audit VALUES "+str((6, "MACAddress",  data_to_put['data_2']['MACAddress'])))
+    curr.execute("SELECT ROWID, * FROM audit")
+    f = open('report.txt', 'w')
+    f.write("Task 1:" + '\n')
+    for row in curr:
+        f.write(str(row) + '\n')
+        print(row)
+    f.write("Task 2:" + '\n')
+    return 0
 
 def task_2():
     hosts = ("172.16.22.11","172.16.22.10")
@@ -114,11 +143,18 @@ def task_2():
             else:
                 if del_able[i][1] == to_bd[j].get('Code'):
                     result.append(to_bd[j])
-    return str(result)
+    for z in range(4):
+        curr.execute("INSERT INTO drawback VALUES "+str((z+1, str(to_bd[z]['OS'])+' '+str(to_bd[z]['Code']),  str(to_bd[z]['Title']), str(to_bd[z]['Description']))))
+    curr.execute("SELECT ROWID, * FROM drawback")
+    f = open('report.txt', 'a')
+    for row in curr:
+        f.write(str(row) + '\n')
+        print(row)
+    return 0
 
 def main():
-    print(task_1(hosts))
-    print(task_2())
+    task_1(hosts)
+    task_2()
 
 if __name__ == "__main__":
     main()
