@@ -13,6 +13,7 @@ id_list = []
 #s[1] - title
 #s[2] - desc
 
+to_bd = []
 with open('CVE_ID-KB.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in reader:
@@ -33,9 +34,11 @@ with open('CVE_ID-OSversion.csv', 'r') as csvfile:
     read = csv.reader(csvfile)
     for row in read:
         s = row[0].split(';')
-        print(s[1])
+        to_bd.append(dict(OS=s[0],Title=s[1],Description=s[2],Code=s[4]))
 
-'''hosts = ("172.16.22.11","172.16.22.10")
+#print(to_bd[0])
+
+hosts = ("172.16.22.11","172.16.22.10")
 c = wmi.WMI(computer = hosts[0],
  user = "administrator",
  password = "P@ssw0rd"
@@ -76,10 +79,13 @@ found = []
 for i in range(len(vul_list)):
     if os_list[i] == '7':
         if vul_list[i] not in win7KBlist:
-            found.append(dict.fromkeys([os_list[i]],vul_list[i]))
+            found.append((os_list[i],id_list[i]))
     else:
         if vul_list[i] not in win2012KBlist:
-            found.append(dict.fromkeys([os_list[i]],vul_list[i]))
+            found.append((os_list[i],id_list[i]))
 
-print(found)
-'''
+found = (list(set(found)))
+for i in range(len(found)):
+	for j in range(len(to_bd)):
+		if found[i][1] == to_bd[j].get('Code'):
+			print(to_bd[j].get('Code')+' '+to_bd[j].get('OS'))
