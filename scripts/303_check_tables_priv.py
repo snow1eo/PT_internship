@@ -9,7 +9,7 @@ from modules.transports import get_transport
 
 def main():
     try:
-        env = get_compliance_env('008')
+        env = get_compliance_env('303')
         sql = get_transport('MySQL')
         tables_privs = sql.load_table('mysql.tables_priv')
         if not env['whitelist']:

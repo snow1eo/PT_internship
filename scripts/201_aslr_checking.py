@@ -12,7 +12,7 @@ from modules.transports import get_transport
 
 def main():
     try:
-        env = get_compliance_env('013')
+        env = get_compliance_env('201')
         ssh = get_transport('SSH')
         param = ssh.execute_show('/sbin/sysctl kernel.randomize_va_space').split()[-1]
         if param == '2':

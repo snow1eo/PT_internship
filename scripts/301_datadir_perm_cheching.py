@@ -13,7 +13,7 @@ from modules.transports import get_transport
 
 def main():
     try:
-        env = get_compliance_env('011')
+        env = get_compliance_env('301')
         ssh = get_transport('SSH')
         sql = get_transport('MySQL')
         datadir = get_global_variables(sql)['DATADIR']
