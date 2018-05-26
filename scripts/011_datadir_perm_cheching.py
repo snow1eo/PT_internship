@@ -4,7 +4,9 @@ from shlex import quote
 
 from modules.errors import TransportConnectionError, RemoteHostCommandError, \
     PermissionDenied
-from modules.functions import get_compliance_env
+from modules.functions import get_compliance_env, get_global_variables, \
+    get_permissions, make_message_compl, make_message_not_compl, \
+    check_permissions
 from modules.statuses import Status
 from modules.transports import get_transport
 
