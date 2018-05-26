@@ -105,5 +105,12 @@
         "env": {
             "permissions": "700"
         }
-    }    
+    },    
+    "012": {
+        "title": "Logs checking",
+        "descr": "Checking logs mode",
+        "req": "Logs is ON",
+        "prescription": "Run command: logging enable (logging on for PIX 6.x version)",
+        "env": {}
+    }
 }
