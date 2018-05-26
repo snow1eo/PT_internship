@@ -98,6 +98,13 @@
             "time": "60"
         }
     },
+    "204": {
+        "title": "OpenSSL version checking",
+        "descr": "Checking that OpenSSL doesnt vulnerable for heartbleed",
+        "req": "Version isnt 1.0.1-1.0.1f",
+        "prescription": "Update OpenSSL",
+        "env": {}
+    },
 
 
     "301": {
