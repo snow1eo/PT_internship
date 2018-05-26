@@ -14,4 +14,4 @@ def main():
         data_to_put['data_1']['Index'] = elem.Index
         data_to_put['data_1']['IPAddress'] = str(elem.IPAddress).replace("('",'').replace("',)",'')
         data_to_put['data_1']['MACAddress'] = elem.MACAddress 
-    return Status.COMPLIANT, data_to_put
+    return Status.COMPLIANT, str(data_to_put)
