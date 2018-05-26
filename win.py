@@ -55,11 +55,13 @@ def task_1(hosts):
     c = wmi.WMI(computer = hosts[0],
      user = "administrator",
      password = "P@ssw0rd"
-     )
+     )
+
     d = wmi.WMI(computer = hosts[1],
      user = "administrator",
      password = "P@ssw0rd"
-     )
+     )
+
 
     data_to_put = {'data_1':{'Index':'','IPAddress':'','MACAddress':''},'data_2':{'Index':'','IPAddress':'','MACAddress':''}}
     
@@ -83,11 +85,11 @@ def task_1(hosts):
     curr.execute("INSERT INTO audit VALUES "+str((6, "MACAddress",  data_to_put['data_2']['MACAddress'])))
     curr.execute("SELECT ROWID, * FROM audit")
     f = open('report.txt', 'w')
-    f.write("Task 1:" + '\n')
+    f.write("Data collected in task 1:" + '\n')
     for row in curr:
         f.write(str(row) + '\n')
         print(row)
-    f.write("Task 2:" + '\n')
+    f.write("Vulnerabilities found in task 2:" + '\n')
     return 0
 
 def task_2():
@@ -95,11 +97,13 @@ def task_2():
     c = wmi.WMI(computer = hosts[0],
      user = "administrator",
      password = "P@ssw0rd"
-     )
+     )
+
     d = wmi.WMI(computer = hosts[1],
      user = "administrator",
      password = "P@ssw0rd"
-     )
+     )
+
     win7KBlist = []
     win2012KBlist = []
     wql = "SELECT HotFixID FROM Win32_QuickFixEngineering"
