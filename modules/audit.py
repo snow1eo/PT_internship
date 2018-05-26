@@ -113,7 +113,7 @@ def detect_os():
         ssh = get_transport('SSH')
         raw_os = ssh.execute_show('uname -a')
         if not raw_os.startswith('Linux'):
-            return Status.COMPLIANT, raw_os.split()[0]
+            return raw_os.split()[0]
         raw_os = raw_os.lower()
         if 'debian' in raw_os:
             return 'Debian Linux'
