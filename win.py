@@ -5,12 +5,13 @@ temp = ''
 temp2 = ''
 temp3 = ''
 vul_list = []
+
+string = 'ffff'
 os_list = []
 id_list = []
 with open('CVE_ID-KB.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in reader:
-       # print(" ".join(row),'+')
         temp = row[0].split(';')
         if len(temp) == 2:
             vul_list.append(temp[0])
@@ -43,7 +44,7 @@ win2012KBlist = []
 
 print(vul_list)
 
-'''wql = "SELECT IPAddress, MACAddress FROM Win32_NetworkAdapterConfiguration where ipenabled = true"
+wql = "SELECT IPAddress, MACAddress FROM Win32_NetworkAdapterConfiguration where ipenabled = true"
 for elem in c.query(wql):
     data_to_put['data_1']['Index'] = elem.Index
     data_to_put['data_1']['IPAddress'] = str(elem.IPAddress).replace("('",'').replace("',)",'')
@@ -65,4 +66,4 @@ for hotfix in c.query(wql):
 for hotfix in d.query(wql):
     win2012KBlist.append(hotfix.hotfixid)
 print(win7KBlist)
-print(win2012KBlist)'''
+print(win2012KBlist)
