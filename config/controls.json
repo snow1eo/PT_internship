@@ -65,14 +65,25 @@
             "conf_name": "/etc/mysql/my.cnf"
         }
     },
-    "007": {
+
+
+    "301": {
+        "title": "Datadir permissions checking",
+        "descr": "Checking datadir permissions are 700.",
+        "req": "Permissions are 700.",
+        "prescription": "You must change permissions using chmod",
+        "env": {
+            "permissions": "700"
+        }
+    },
+    "302": {
         "title": "MySQL passwords checking",
         "descr": "Checking that MySQL users do not use weak passwords like username or 'pwd123'.",
         "req": "Users dont have weak passwords",
         "prescription": "These users should change password.",
         "env": {}
     },
-    "008": {
+    "303": {
         "title": "MySQL tables privilege",
         "descr": "Checking that the table is given privileges only to users from whitelist.",
         "req": "The table is given privileges only to users from whitelist",
@@ -83,7 +94,7 @@
             "whitelist": ["admin"]
         }
     },
-    "009": {
+    "401": {
         "title": "SSH version checking",
         "descr": "Checking that SSH version is 2.",
         "req": "SSH version is 2",
@@ -96,16 +107,7 @@
         "req": "console timeout <= 10, ssh timeout <= 10",
         "prescription": "Run commands: console timeout {<= 10 minutes}, ssh timeout {<= 10 minutes}",
         "env": {}
-    },
-    "011": {
-        "title": "Datadir permissions checking",
-        "descr": "Checking datadir permissions are 700.",
-        "req": "Permissions are 700.",
-        "prescription": "You must change permissions using chmod",
-        "env": {
-            "permissions": "700"
-        }
-    },    
+    }, 
     "012": {
         "title": "Logs checking",
         "descr": "Checking logs mode",
