@@ -1,13 +1,10 @@
-import re
 import sys
 import traceback
 
 from netmiko import ConnectHandler
 
-from modules.errors import TransportConnectionError, SSHFileNotFound
-from modules.functions import get_compliance_env
+from modules.errors import TransportConnectionError
 from modules.statuses import Status
-from modules.transports import get_transport
 
 
 def main():
@@ -24,4 +21,3 @@ def main():
         exc_info = sys.exc_info()
         traceback.print_exception(*exc_info)
         return Status.ERROR, traceback.format_exception(*exc_info)[-1]
-    return Status.COMPLIANT, None

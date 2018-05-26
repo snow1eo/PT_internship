@@ -17,15 +17,15 @@ def main():
         console_timeout = re.findall(R'\d+', device.send_command("sh running-config console timeout"))[0]
 
         if int(console_timeout) > 10:
-            return Status.NOT_COMPLIANT, 
+            return Status.NOT_COMPLIANT, \
                         'console timeout is ' + console_timeout
     
-        ssh_timeout = re.findall(R'\d+', ssh.execute_show("sh running-config ssh timeout"))[0]
+        ssh_timeout = re.findall(R'\d+', device.send_command("sh running-config ssh timeout"))[0]
      
         if int(ssh_timeout) > 10:
             return Status.NOT_COMPLIANT, 'ssh timeout is ' + ssh_timeout
 
-        return Status.COMPLIANT
+        return Status.COMPLIANT, None
 
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No connection'
