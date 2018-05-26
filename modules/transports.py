@@ -145,7 +145,8 @@ class SSHTransport(Transport):
             self.conn.connect(hostname=self.host,
                               port=self.port,
                               username=self.user,
-                              password=self.password)
+                              password=self.password,
+                              look_for_keys=False)
         except paramiko.ssh_exception.AuthenticationException:
             raise AuthenticationError(self.user, self.password)
         except Exception:
