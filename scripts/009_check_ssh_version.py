@@ -12,8 +12,6 @@ from modules.transports import get_transport
 
 def main():
     try:
-        platform = 'cisco_ios'
-        host = '172.16.22.2'
         device = ConnectHandler(device_type='cisco_ios', ip='172.16.22.2', username='admin', password='P@ssw0rd')
 
         version = device.send_command("sh running-config ssh version").split()[-1]
