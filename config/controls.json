@@ -155,5 +155,12 @@
         "req": "Logs is ON",
         "prescription": "Run command: logging enable (logging on for PIX 6.x version)",
         "env": {}
+    },
+    "404": {
+        "title": "Password encryption",
+        "descr": "Checks password security.",
+        "req": "Password is encrypted",
+        "prescription": "Run command: enable {password} encrypted",
+        "env": {}
     }
 }
