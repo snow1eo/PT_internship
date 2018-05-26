@@ -1,0 +1,11 @@
+4
+    winreg
+5
+    ssh(sh)
+    compl 1
+    compl 2
+    compl 3
+    compl 4
+    compl 5
+    detect 1
+    detect 2

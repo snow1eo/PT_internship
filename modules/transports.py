@@ -1,18 +1,21 @@
 import json
+import sqlite3
 from abc import ABCMeta, abstractmethod
+from base64 import b64encode
 from typing import NamedTuple
 
 import os.path
 import paramiko
 import pymysql
-from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, \
-    UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
+from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, ContextData, \
+    UdpTransportTarget, ObjectType, ObjectIdentity
 
-from modules.errors import TransportConnectionError, MySQLError, \
-    AuthenticationError, UnknownTransport, UnknownDatabase, \
-    RemoteHostCommandError, SSHFileNotFound, SNMPStatusError, \
-    SNMPError
+from modules.errors import SNMPStatusError, SNMPError, PermissionDenied, \
+    TransportConnectionError, MySQLError, AuthenticationError, \
+    UnknownTransport, UnknownDatabase, RemoteHostCommandError, SSHFileNotFound
+from modules.wmi_client_wrapper import WmiClientWrapper
 
+CACHE_DB_NAME = 'cache.sqlite3'
 ENV_FILE = os.path.join('config', 'env.json')
 _raw_conf = None
 _cache = dict()
@@ -71,7 +74,8 @@ class MySQLTransport(Transport):
                                         database=self.env['MYSQL_DATABASE'],
                                         charset='utf8',
                                         cursorclass=pymysql.cursors.DictCursor,
-                                        unix_socket=False)
+                                        unix_socket=False,
+                                        connect_timeout=31536000)
         except pymysql.err.OperationalError as e_info:
             if "Access denied" in str(e_info):
                 raise AuthenticationError(self.user, self.password)
@@ -98,6 +102,39 @@ class MySQLTransport(Transport):
         self.conn.commit()
         return curr.fetchall()
 
+    def load_table(self, table):
+        database, table = table.split('.')
+        with sqlite3.connect(CACHE_DB_NAME) as db:
+            curr = db.cursor()
+            curr.execute("""CREATE TABLE IF NOT EXISTS database(
+                            name TEXT PRIMARY KEY)""")
+            curr.execute("""CREATE TABLE IF NOT EXISTS cached_table(
+                            id INTEGER PRIMARY KEY,
+                            name TEXT,
+                            database TEXT NOT NULL,
+                            data_json TEXT,
+                            FOREIGN KEY (database) REFERENCES database(name))""")
+            if curr.execute("SELECT name FROM database WHERE name = ?",
+                            (database,)).fetchall():
+                curr.execute("INSERT INTO database VALUES (?)", (database,))
+            if curr.execute("""SELECT name FROM cached_table
+                               WHERE database = ? AND name = ?""",
+                            (database, table)).fetchall():
+                return json.loads(curr.execute(
+                    """SELECT data_json FROM cached_table WHERE database = ?
+                       AND name = ?""", (database, table)).fetchone()[0])
+            else:
+                data = self.sqlexec("SELECT * FROM {}.{}".format(database, table))
+                for item in data:
+                    for key, value in item.items():
+                        if type(value) == bytes:
+                            item[key] = b64encode(value).decode()
+                        else:
+                            item[key] = str(value)
+                curr.execute("INSERT INTO cached_table VALUES (NULL, ?, ?, ?)",
+                             (table, database, json.dumps(data)))
+                return data
+
 
 class SSHTransport(Transport):
     NAME = 'SSH'
@@ -109,7 +146,8 @@ class SSHTransport(Transport):
             self.conn.connect(hostname=self.host,
                               port=self.port,
                               username=self.user,
-                              password=self.password)
+                              password=self.password,
+                              look_for_keys=False)
         except paramiko.ssh_exception.AuthenticationException:
             raise AuthenticationError(self.user, self.password)
         except Exception:
@@ -123,6 +161,8 @@ class SSHTransport(Transport):
         stdin, stdout, stderr = self.conn.exec_command(command)
         err = stderr.read()
         if err:
+            if "Permission denied" in str(err):
+                raise PermissionDenied(err)
             raise RemoteHostCommandError(err)
         return stdin, stdout, stderr
 
@@ -148,9 +188,6 @@ class SNMPTransport(Transport):
         except Exception:
             raise TransportConnectionError(self.host, self.port)
 
-    def close(self):
-        self.remove_from_cache()
-
     def get_snmpdata(self, *oids):
         # передаю сырой oid, потому что с местными MID не смог разобраться нормально 
         result = list()
@@ -174,11 +211,66 @@ class SNMPTransport(Transport):
                     result.append(varBind[1].prettyPrint())
         return result
 
+    def close(self):
+        self.remove_from_cache()
+    
+
+
+class WMITransport(Transport):
+    NAME = 'WMI'
+
+    # Так как используем wpapper, коннект не нужен
+    def connect(self):
+        pass
+
+    def wmi_exec(self, command):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        return wmic.execute(command)
+
+    def wmi_query(self, request):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        return wmic.query(request)
+
+    def close(self):
+        self.remove_from_cache()
+
+
+# По заданию нужен отдельный транспорт, однако я думаю, можно было бы
+# и в предыдущий добавить
+class WMIRegistryTransport(Transport):
+    NAME = 'WMIRegistry'
+
+    # Так как используем wpapper, коннект не нужен
+    def connect(self):
+        pass
+
+    def close(self):
+        self.remove_from_cache()
+
+    def get_value(self, hive, path, value_name):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        query = """SELECT * FROM RegistryValueChangeEvent WHERE
+                   Hive = '{hive}' AND KeyPath = '{path}' AND
+                   ValueName = '{value_name}'""".format(
+            hive=hive, path=path, value_name=value_name)
+        return wmic.query(query)
+
 
 _TRANSPORTS = {
     'SSH': SSHTransport,
     'MySQL': MySQLTransport,
-    'SNMP': SNMPTransport
+    'SNMP': SNMPTransport,
+    'WMI': WMITransport,
+    'WMIRegistry': WMIRegistryTransport
 }
 
 

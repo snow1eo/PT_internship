@@ -83,7 +83,7 @@ def no_snmp_connections(monkeypatch):
 
     def no_snmp(self):
         raise TransportConnectionError(None, None)
-    
+
     monkeypatch.setattr('modules.transports.SNMPTransport.connect', no_snmp)
 
 

@@ -103,3 +103,4 @@ ENV/
 *.db
 .idea
 *.pdf
+*.sqlite3

@@ -38,6 +38,14 @@ class MySQLError(TransportError):
 
 
 class RemoteHostCommandError(TransportError):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+class PermissionDenied(RemoteHostCommandError):
     pass
 
 

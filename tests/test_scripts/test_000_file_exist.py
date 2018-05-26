@@ -1,23 +1,23 @@
-from shlex import quote
 import importlib
+from shlex import quote
 
-from modules.database import get_controls
+from modules.functions import get_compliance_env
 from modules.statuses import Status
 from modules.transports import get_transport, close_all_connections
 
 test = importlib.import_module('.000_test_file_exist', package='scripts')
 
 
-def test_000_file_exist_1(run_docker):
-    env = get_controls()['000']['env']
+def test_compliant(run_docker):
+    env = get_compliance_env('000')
     env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     ssh.execute('touch "{filename}"'.format(**env))
     assert test.main()[0] == Status.COMPLIANT
 
 
-def test_000_file_exist_2(run_docker):
-    env = get_controls()['000']['env']
+def test_not_compliant(run_docker):
+    env = get_compliance_env('000')
     env['filename'] = quote(env['filename'])
     ssh = get_transport('SSH')
     try:
@@ -27,11 +27,11 @@ def test_000_file_exist_2(run_docker):
     assert test.main()[0] == Status.NOT_COMPLIANT
 
 
-def test_000_file_exist_3(run_docker, no_ssh_connections):
+def test_not_applicable(run_docker, no_ssh_connections):
     close_all_connections()
     assert test.main()[0] == Status.NOT_APPLICABLE
 
 
-def test_000_file_exist_4(run_docker, no_transports):
+def test_error(run_docker, no_transports):
     close_all_connections()
     assert test.main()[0] == Status.ERROR and test.main()[1]

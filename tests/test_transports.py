@@ -1,9 +1,12 @@
+import json
+import sqlite3
+
 import pytest
 
 from modules.errors import UnknownTransport, AuthenticationError, SSHFileNotFound, \
     TransportConnectionError, TransportError, MySQLError, UnknownDatabase
 from modules.transports import get_transport, get_transport_config, \
-    SSHTransport, MySQLTransport
+    SSHTransport, MySQLTransport, CACHE_DB_NAME
 
 WRONG_PORT = -1
 port_ssh = get_transport_config('SSH').port
@@ -69,7 +72,8 @@ class TestMySQLTransport:
         sql = get_transport('MySQL')
         sql.sqlexec('CREATE DATABASE IF NOT EXISTS test_db')
         sql.connect('test_db')
-        sql.sqlexec("""CREATE TABLE IF NOT EXISTS test (
+        sql.sqlexec("DROP TABLE IF EXISTS test")
+        sql.sqlexec("""CREATE TABLE IF NOT EXISTS test(
                     name VARCHAR(20), owner VARCHAR(20))""")
         sql.sqlexec("INSERT INTO test VALUES ('Dolly', 'Me')")
         data = sql.sqlexec('SELECT * FROM test')
@@ -79,6 +83,17 @@ class TestMySQLTransport:
         sql = get_transport('MySQL')
         with pytest.raises(MySQLError):
             sql.sqlexec('WRONG REQUEST')
+
+    def test_load_table(self, run_docker, change_dir):
+        sql = get_transport('MySQL')
+        data = sql.load_table('mysql.db')
+        with sqlite3.connect(CACHE_DB_NAME) as db:
+            curr = db.cursor()
+            curr.execute("""SELECT data_json FROM cached_table
+                            WHERE database = 'mysql' AND name = 'db'""")
+            assert json.loads(curr.fetchone()[0]) == data
+        sql.conn = None
+        assert sql.load_table('mysql.db') == data
 
 
 class TestSSHTransport:

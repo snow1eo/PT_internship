@@ -1,0 +1,37 @@
+import sqlite3
+import sys
+import traceback
+
+from passlib.hash import cisco_type7
+
+from modules.database import DB_NAME
+from modules.errors import TransportConnectionError, RemoteHostCommandError
+from modules.statuses import Status
+from modules.transports import get_transport
+
+TEST_NUM = 3
+
+
+def main():
+    try:
+        ssh = get_transport('SSH')
+        data = ssh.execute_show('show mem | strings | grep password')
+        if not data:
+            return Status.COMPLIANT, None
+        else:
+            # Пока только 1 вариант обрабатывается
+            data, *_ = map(str.split, data.splitlines())
+            login = data[1]
+            password = cisco_type7.decode(data[4])
+            with sqlite3.connect(DB_NAME) as db:
+                curr = db.cursor()
+                curr.execute("UPDATE control SET prescription = ? WHERE id = ?",
+                             ("Found credentials: {}: {}".format(
+                                 login, password), TEST_NUM))
+            return Status.NOT_COMPLIANT, None
+    except (TransportConnectionError, RemoteHostCommandError):
+        return Status.NOT_APPLICABLE, 'No connection'
+    except Exception:
+        exc_info = sys.exc_info()
+        traceback.print_exception(*exc_info)
+        return Status.ERROR, traceback.format_exception(*exc_info)[-1]
