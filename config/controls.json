@@ -85,10 +85,19 @@
     },
     "009": {
         "title": "SSH version checking",
-        "descr": "Checking that SSH version is 2",
+        "descr": "Checking that SSH version is 2.",
         "req": "SSH version is 2",
-        "prescription": "You must update version to 2",
+        "prescription": "You must update version to 2.",
         "env": {
+        }
+    },
+    "011": {
+        "title": "Datadir permissions checking",
+        "descr": "Checking datadir permissions are 700.",
+        "req": "Permissions are 700.",
+        "prescription": "You must change permissions using chmod",
+        "env": {
+            "permissions": "700"
         }
     }
 }

@@ -4,17 +4,20 @@ from shlex import quote
 
 from modules.errors import TransportConnectionError, RemoteHostCommandError, \
     PermissionDenied
-from modules.functions import get_compliance_env, check_permissions, \
-    get_permissions, make_message_compl, make_message_not_compl
+from modules.functions import get_compliance_env
 from modules.statuses import Status
 from modules.transports import get_transport
 
 
 def main():
     try:
-        env = get_compliance_env('002')
+        env = get_compliance_env('011')
         ssh = get_transport('SSH')
-        if check_permissions(env, get_permissions(ssh, env['filename'])):
+        sql = get_transport('MySQL')
+        datadir = get_global_variables(sql)['DATADIR']
+        curr_perm = get_permissions(ssh, datadir)
+        env.update({'filename': datadir})
+        if check_permissions(env, curr_perm):
             return Status.COMPLIANT, make_message_compl(env)
         else:
             return Status.NOT_COMPLIANT, make_message_not_compl(
