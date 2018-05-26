@@ -88,10 +88,15 @@
         "descr": "Checking that SSH version is 2.",
         "req": "SSH version is 2",
         "prescription": "You must update version to 2.",
-        "env": {
-        }
+        "env": {}
     },
-<<<<<<< HEAD
+    "010": {
+        "title": "Timeouts checking",
+        "descr": "Checking that console timeout <= 10 minutes. Checking that ssh timeout <= 10 minutes",
+        "req": "console timeout <= 10, ssh timeout <= 10",
+        "prescription": "Run commands: console timeout {<= 10 minutes}, ssh timeout {<= 10 minutes}",
+        "env": {}
+    },
     "011": {
         "title": "Datadir permissions checking",
         "descr": "Checking datadir permissions are 700.",
@@ -99,14 +104,6 @@
         "prescription": "You must change permissions using chmod",
         "env": {
             "permissions": "700"
-=======
-    "009": {
-        "title": "Timeouts checking",
-        "descr": "Checking that console timeout <= 10 minutes. Checking that ssh timeout <= 10 minutes",
-        "req": "console timeout <= 10, ssh timeout <= 10",
-        "prescription": "Run commands: console timeout {<= 10 minutes}, ssh timeout {<= 10 minutes}",
-        "env": {
->>>>>>> 05424370bdb899f54091f74a926120e96fd43675
         }
-    }
+    }    
 }

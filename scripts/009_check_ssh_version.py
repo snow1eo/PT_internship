@@ -16,11 +16,10 @@ def main():
                 user="admin",
                 password="P@ssw0rd")
 
-        config = ssh.execute_show("sh running-config")
-        version = re.findall(R'\d', re.findall(R'ssh version \d', config)[0])[0]
+        version = ssh.execute_show("sh running-config ssh version").split()[-1]
         if version == '2':
             return Status.COMPLIANT, None
-        return Status.NOT_COMPLIANT, "version is " + version 
+        return Status.NOT_COMPLIANT, "version is {}".format(version) 
     except TransportConnectionError:
         return Status.NOT_APPLICABLE, 'No connection'
     except Exception:

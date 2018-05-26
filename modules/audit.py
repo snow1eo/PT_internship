@@ -22,7 +22,7 @@ def audit():
     init_scanning()
     os = detect_os()
     snmp_audit()
-    ssh_audit_cisco()
+    #ssh_audit_cisco()
     if os != 'unknown':
         ssh_audit_unix()
 
