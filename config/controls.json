@@ -82,5 +82,13 @@
             "table": "user",
             "whitelist": ["admin"]
         }
+    },
+    "009": {
+        "title": "SSH version checking",
+        "descr": "Checking that SSH version is 2",
+        "req": "SSH version is 2",
+        "prescription": "You must update version to 2",
+        "env": {
+        }
     }
 }
