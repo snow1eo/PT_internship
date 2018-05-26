@@ -2,16 +2,30 @@ import wmi
 import json
 import csv
 temp = ''
+temp2 = ''
+temp3 = ''
 vul_list = []
+os_list = []
+id_list = []
 with open('CVE_ID-KB.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in reader:
        # print(" ".join(row),'+')
-       temp = row[0].split(';')
-       if len(temp) == 2:
-           vul_list.append(temp[0])
+        temp = row[0].split(';')
+        if len(temp) == 2:
+            vul_list.append(temp[0])
+        if len(row) != 1:
+            temp2 = row[1].split(';')
+            if len(temp2) == 2:
+                os_list.append(temp2[0])
+                id_list.append(temp2[1])
+            else:
+                os_list.append(temp2[0])
+                temp3 = row[3].split(';')
+                id_list.append(temp3[1])
        
-
+print(os_list)
+print(id_list)
 
 hosts = ("172.16.22.11","172.16.22.10")
 c = wmi.WMI(computer = hosts[0],
