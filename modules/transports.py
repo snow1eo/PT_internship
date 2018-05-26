@@ -10,9 +10,10 @@ import pymysql
 from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, ContextData, \
     UdpTransportTarget, ObjectType, ObjectIdentity
 
-from modules.errors import TransportConnectionError, AuthenticationError, \
-    UnknownTransport, RemoteHostCommandError, MySQLError, UnknownDatabase, \
-    SSHFileNotFound, SNMPStatusError, SNMPError, PermissionDenied
+from modules.errors import SNMPStatusError, SNMPError, PermissionDenied, \
+    TransportConnectionError, MySQLError, AuthenticationError, \
+    UnknownTransport, UnknownDatabase, RemoteHostCommandError, SSHFileNotFound
+from modules.wmi_client_wrapper import WmiClientWrapper
 
 CACHE_DB_NAME = 'cache.sqlite3'
 ENV_FILE = os.path.join('config', 'env.json')
@@ -187,9 +188,6 @@ class SNMPTransport(Transport):
         except Exception:
             raise TransportConnectionError(self.host, self.port)
 
-    def close(self):
-        self.remove_from_cache()
-
     def get_snmpdata(self, *oids):
         # передаю сырой oid, потому что с местными MID не смог разобраться нормально 
         result = list()
@@ -213,11 +211,66 @@ class SNMPTransport(Transport):
                     result.append(varBind[1].prettyPrint())
         return result
 
+    def close(self):
+        self.remove_from_cache()
+    
+
+
+class WMITransport(Transport):
+    NAME = 'WMI'
+
+    # Так как используем wpapper, коннект не нужен
+    def connect(self):
+        pass
+
+    def wmi_exec(self, command):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        return wmic.execute(command)
+
+    def wmi_query(self, request):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        return wmic.query(request)
+
+    def close(self):
+        self.remove_from_cache()
+
+
+# По заданию нужен отдельный транспорт, однако я думаю, можно было бы
+# и в предыдущий добавить
+class WMIRegistryTransport(Transport):
+    NAME = 'WMIRegistry'
+
+    # Так как используем wpapper, коннект не нужен
+    def connect(self):
+        pass
+
+    def close(self):
+        self.remove_from_cache()
+
+    def get_value(self, hive, path, value_name):
+        wmic = WmiClientWrapper(
+            username=self.user,
+            password=self.password,
+            host=self.host)
+        query = """SELECT * FROM RegistryValueChangeEvent WHERE
+                   Hive = '{hive}' AND KeyPath = '{path}' AND
+                   ValueName = '{value_name}'""".format(
+            hive=hive, path=path, value_name=value_name)
+        return wmic.query(query)
+
 
 _TRANSPORTS = {
     'SSH': SSHTransport,
     'MySQL': MySQLTransport,
-    'SNMP': SNMPTransport
+    'SNMP': SNMPTransport,
+    'WMI': WMITransport,
+    'WMIRegistry': WMIRegistryTransport
 }
 
 
