@@ -15,16 +15,15 @@ def main():
                 port=22,
                 user="admin",
                 password="P@ssw0rd")
-
-        config = ssh.execute_show("sh running-config")
-        
-        console_timeout = re.findall(R'\d', re.findall(R'console timeout \d', config)[0])[0]
+    
+        ssh.execute("terminal pager 0")
+        console_timeout = re.findall(R'\d+', ssh.execute_show("sh running-config console timeout"))[0]
 
         if int(console_timeout) > 10:
             return Status.NOT_COMPLIANT, 
                         'console timeout is ' + console_timeout
     
-        ssh_timeout = re.findall(R'\d', re.findall(R'ssh timeout \d', config)[0])[0]
+        ssh_timeout = re.findall(R'\d+', ssh.execute_show("sh running-config ssh timeout"))[0]
      
         if int(ssh_timeout) > 10:
             return Status.NOT_COMPLIANT, 'ssh timeout is ' + ssh_timeout
