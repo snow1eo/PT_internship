@@ -4,11 +4,15 @@ import csv
 temp = ''
 temp2 = ''
 temp3 = ''
+s = ''
 vul_list = []
-
-string = 'ffff'
 os_list = []
 id_list = []
+
+#s[4] - коды уязвимостей
+#s[1] - title
+#s[2] - desc
+
 with open('CVE_ID-KB.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in reader:
@@ -24,11 +28,14 @@ with open('CVE_ID-KB.csv', 'r') as csvfile:
                 os_list.append(temp2[0])
                 temp3 = row[3].split(';')
                 id_list.append(temp3[1])
-       
-print(os_list)
-print(id_list)
 
-hosts = ("172.16.22.11","172.16.22.10")
+with open('CVE_ID-OSversion.csv', 'r') as csvfile:
+    read = csv.reader(csvfile)
+    for row in read:
+        s = row[0].split(';')
+        print(s[1])
+
+'''hosts = ("172.16.22.11","172.16.22.10")
 c = wmi.WMI(computer = hosts[0],
  user = "administrator",
  password = "P@ssw0rd"
@@ -41,8 +48,6 @@ d = wmi.WMI(computer = hosts[1],
 data_to_put = {'data_1':{'Index':'','IPAddress':'','MACAddress':''},'data_2':{'Index':'','IPAddress':'','MACAddress':''}}
 win7KBlist = []
 win2012KBlist = []
-
-print(vul_list)
 
 wql = "SELECT IPAddress, MACAddress FROM Win32_NetworkAdapterConfiguration where ipenabled = true"
 for elem in c.query(wql):
@@ -65,5 +70,16 @@ for hotfix in c.query(wql):
 
 for hotfix in d.query(wql):
     win2012KBlist.append(hotfix.hotfixid)
-print(win7KBlist)
-print(win2012KBlist)
+
+found = []
+
+for i in range(len(vul_list)):
+    if os_list[i] == '7':
+        if vul_list[i] not in win7KBlist:
+            found.append(dict.fromkeys([os_list[i]],vul_list[i]))
+    else:
+        if vul_list[i] not in win2012KBlist:
+            found.append(dict.fromkeys([os_list[i]],vul_list[i]))
+
+print(found)
+'''
