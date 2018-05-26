@@ -2,11 +2,14 @@ import wmi
 import json
 import csv
 temp = ''
+vul_list = []
 with open('CVE_ID-KB.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in reader:
        # print(" ".join(row),'+')
-       print(row[0].split(';'))
+       temp = row[0].split(';')
+       if len(temp) == 2:
+           vul_list.append(temp[0])
        
 
 
@@ -23,7 +26,8 @@ d = wmi.WMI(computer = hosts[1],
 data_to_put = {'data_1':{'Index':'','IPAddress':'','MACAddress':''},'data_2':{'Index':'','IPAddress':'','MACAddress':''}}
 win7KBlist = []
 win2012KBlist = []
-vul_list = []
+
+print(vul_list)
 
 '''wql = "SELECT IPAddress, MACAddress FROM Win32_NetworkAdapterConfiguration where ipenabled = true"
 for elem in c.query(wql):
